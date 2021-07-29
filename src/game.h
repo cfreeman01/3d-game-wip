@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include "audioPlayer.h"
+#include "level.h"
 
 // Represents the current state of the game
 enum GameState {
@@ -19,6 +20,7 @@ class Game
 {
 public:
     GameState               State;
+    level*                  currentLevel;
     //input
     bool                    Keys[1024];
     bool                    mouse1, mouse2;

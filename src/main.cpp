@@ -66,6 +66,7 @@ int main()
     float lastFrame = 0.0f;
     float currentFrame = 0.0f;
 
+    glEnable(GL_DEPTH_TEST);
     while (!glfwWindowShouldClose(window))
     {
         // calculate delta time
@@ -81,7 +82,7 @@ int main()
         game.Update(deltaTime);
 
         // render
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(0.69f, 0.87f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         game.Render(deltaTime);
 

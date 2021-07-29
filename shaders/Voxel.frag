@@ -10,9 +10,9 @@ in vec2 texCoord;
 out vec4 FragColor;
 
 uniform sampler2D voxTexture;
-uniform vec3 color;
+uniform vec3 voxColor;
 
 void main()
 {
-    FragColor = vec4(color, 1.0) * TEXTURE2D(voxTexture, texCoord);
+    FragColor = vec4(voxColor, 1.0) * TEXTURE2D(voxTexture, texCoord);
 }

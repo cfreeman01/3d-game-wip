@@ -61,9 +61,9 @@ void VoxelLoader::loadModelFromFile(const char* file, std::string name) {
 			getNextFourBytes(bytes, buffer, i);  //read num bytes of chunk content (should be 12)
 			getNextFourBytes(bytes, buffer, i);  //read num bytes of children chunks (should be 0)
 
-			byteArrayToInt(getNextFourBytes(bytes, buffer, i)); /*read x,y,z size. not too useful since it includes */
-			byteArrayToInt(getNextFourBytes(bytes, buffer, i)); /*the entire workspace (including empty voxels)     */
-			byteArrayToInt(getNextFourBytes(bytes, buffer, i)); /*so the actual size is calculated later on         */
+			getNextFourBytes(bytes, buffer, i); /*read x,y,z size. not too useful since it includes */
+			getNextFourBytes(bytes, buffer, i); /*the entire workspace (including empty voxels)     */
+			getNextFourBytes(bytes, buffer, i); /*so the actual size is calculated later on         */
 			
 			getNextFourBytes(bytes, buffer, i); //should be 'XYZI'
 			if (strncmp(bytes, "XYZI", 4) != 0) {
@@ -76,14 +76,16 @@ void VoxelLoader::loadModelFromFile(const char* file, std::string name) {
 			int numVoxels = byteArrayToInt(getNextFourBytes(bytes, buffer, i));
 			int minX = INT_MAX, minY = INT_MAX, minZ = INT_MAX;
 			int maxX = INT_MIN, maxY = INT_MIN, maxZ = INT_MIN;
+
 			for (int j = 0; j < numVoxels; j++) {  //get the voxels
 				getNextFourBytes(bytes, buffer, i);
 				newModel.Voxels.push_back(Voxel(
 					(int)(unsigned char)bytes[0], //x
-					(int)(unsigned char)bytes[1], //y
-					(int)(unsigned char)bytes[2], //z
+					(int)(unsigned char)bytes[2], //y
+					(int)(unsigned char)bytes[1], //z
 					(int)(unsigned char)bytes[3]  //colorIndex
 				));
+
 				//check min and max x values (to calculate size)
 				if (newModel.Voxels.back().x < minX) minX = newModel.Voxels.back().x;
 				if (newModel.Voxels.back().x > maxX) maxX = newModel.Voxels.back().x;
@@ -96,12 +98,12 @@ void VoxelLoader::loadModelFromFile(const char* file, std::string name) {
 			newModel.sizeX = (maxX - minX) + 1;
 			newModel.sizeY = (maxY - minY) + 1;
 			newModel.sizeZ = (maxZ - minZ) + 1;
-			//adjust position so that (maxX,maxY,maxZ) is at (0,0,0)
+			//adjust position so that (minX,minY,minZ) is at (0,0,0)
 			for (int i = 0; i < newModel.Voxels.size(); i++) {
 				Voxel& vox = newModel.Voxels[i];
-				vox.x -= maxX;
-				vox.y -= maxY;
-				vox.z -= maxZ;
+				vox.x -= minX;
+				vox.y -= minY;
+				vox.z -= minZ;
 			}
 		}
 		//----------------------------
