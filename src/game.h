@@ -4,7 +4,9 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include "audioPlayer.h"
-#include "level.h"
+#include "camera.h"
+
+class levelRenderer;  //forward declaration
 
 // Represents the current state of the game
 enum GameState {
@@ -20,11 +22,14 @@ class Game
 {
 public:
     GameState               State;
-    level*                  currentLevel;
+    levelRenderer*          lRenderer;
+    Camera*                 mainCamera;
     //input
     bool                    Keys[1024];
-    bool                    mouse1, mouse2;
+    bool                    mouse1 = false, mouse2 = false;
     float                   mouseX, mouseY;
+    float                   mouseWheelOffset = 0.0f;
+    float                   lastCameraModeSwitch = 0.0f;
     //dimensions
     int                     Width, Height;
     int                     playAreaHeight;
