@@ -150,6 +150,7 @@ void VoxelRenderer::drawVoxel(Voxel& voxel, VoxelModel& voxelModel) {
 
     model = glm::scale(model, glm::vec3(modelScale));
     //--------------------------------
+
     projection = game.mainCamera->GetProjectionMatrix();
     view = game.mainCamera->GetViewMatrix();
 

@@ -6,7 +6,9 @@
 #include "audioPlayer.h"
 #include "camera.h"
 
-class levelRenderer;  //forward declaration
+//FORWARD DECLARATIONS
+class level;
+class VoxelRenderer;
 
 // Represents the current state of the game
 enum GameState {
@@ -22,7 +24,8 @@ class Game
 {
 public:
     GameState               State;
-    levelRenderer*          lRenderer;
+    level*                  currentLevel;
+    VoxelRenderer*          vRenderer;
     Camera*                 mainCamera;
     //input
     bool                    Keys[1024];

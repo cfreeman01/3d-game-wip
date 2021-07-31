@@ -8,12 +8,12 @@
 #include "shader.h"
 #include "resource_manager.h"
 #include "VoxelLoader.h"
-#include "levelRenderer.h"
+#include "VoxelRenderer.h"
+#include "level.h"
 
 using namespace std;
 
 audioPlayer Game::gameAudio;
-VoxelModel first_island;
 
 Game::Game(unsigned int width, unsigned int height)
     : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
@@ -35,22 +35,19 @@ void Game::Init()
     //load textures
     ResourceManager::LoadTexture("textures/empty.png", true, "empty");
     //load shaders
-    ResourceManager::LoadShader("shaders/Voxel.vert", "shaders/Voxel.frag", nullptr, "VoxelShader");
-    //load models
-    first_island = VoxelLoader::loadModel("models/first_island.vox", "first_island");
-    first_island.renderer = new VoxelRenderer(ResourceManager::GetShader("VoxelShader"), *this);
-    first_island.scale = 1.0f;
-    //load level
-    lRenderer = new levelRenderer(ResourceManager::GetShader("VoxelShader"), *this, *first_island.renderer);
+    Shader& voxShader = ResourceManager::LoadShader("shaders/Voxel.vert", "shaders/Voxel.frag", nullptr, "VoxelShader");
+    //create voxel renderer
+    vRenderer = new VoxelRenderer(voxShader, *this);
     //create camera
     mainCamera = new Camera(glm::vec3(-38.3f, 21.8f, -21.7f), glm::vec3(0.0f, 1.0f, 0.0f), 29.0f, -28.6f);
-
-    first_island.pos = glm::vec3(-(float)first_island.sizeX / 2, -(float)first_island.sizeY / 2, -(float)first_island.sizeZ / 2);
+    //load level
+    currentLevel = new level(*vRenderer, *this);
 }
 
 void Game::Update(float dt)
 {
     elapsedTime += dt;
+    mainCamera->rotate(dt);
 }
 
 void Game::ProcessInput(float dt)
@@ -60,6 +57,7 @@ void Game::ProcessInput(float dt)
         lastCameraModeSwitch = elapsedTime;
     }
 
+    //Process camera input
     if (mainCamera->freeMode) {
         //process keyboard input
         if (Keys[GLFW_KEY_W])
@@ -76,16 +74,18 @@ void Game::ProcessInput(float dt)
     else {
         //possibly rotate camera
         if (Keys[GLFW_KEY_Q])
-            mainCamera->rotate(dt, false);
-        if (Keys[GLFW_KEY_E] )
-            mainCamera->rotate(dt, true);
+            mainCamera->rotating = -1;
+        if (Keys[GLFW_KEY_E])
+            mainCamera->rotating = 1;
         mainCamera->ProcessMouseScroll(mouseWheelOffset);
         mouseWheelOffset = 0.0f;
     }
+
+    //Process player input
+    //...
 }
 
 void Game::Render(float dt)
 {
-    lRenderer->drawLightSource();
-    first_island.draw();
+    currentLevel->drawIslands();
 }

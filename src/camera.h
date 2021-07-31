@@ -36,6 +36,9 @@ public:
     float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
+    // rotation
+    int rotating = 0; //0: not rotating, 1: rotating clockwise, -1: rotating counterclockwise
+    float degreesRotated = 0.0f;
 
     bool firstMouseInput = true;
     bool freeMode        = false;
@@ -64,7 +67,7 @@ public:
     void ProcessMouseScroll(float ypos);
 
     //rotate camera by 90 degrees if user presses q or e
-    void rotate(float dt, bool clockwise);
+    void rotate(float dt);
 
 private:
     // calculates the front vector from the Camera's (updated) Euler Angles
