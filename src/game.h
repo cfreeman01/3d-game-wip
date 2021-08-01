@@ -10,6 +10,7 @@
 class Level;
 class VoxelRenderer;
 class Player;
+class SpriteRenderer;
 
 // Represents the current state of the game
 enum GameState {
@@ -27,6 +28,7 @@ public:
     GameState               State;
     Level*                  currentLevel;
     VoxelRenderer*          vRenderer;
+    SpriteRenderer*         sRenderer;
     Camera*                 mainCamera;
     Player*                 player;
     //input

@@ -9,6 +9,7 @@
 #include "resource_manager.h"
 #include "VoxelLoader.h"
 #include "VoxelRenderer.h"
+#include "spriteRenderer.h"
 #include "level.h"
 #include "player.h"
 
@@ -37,20 +38,23 @@ Game::~Game()
 void Game::Init()
 {
     //load textures
-    ResourceManager::LoadTexture("textures/empty.png", true, "empty");
+    ResourceManager::LoadTexture("textures/cursor.png", true, "cursor");
     //load shaders
     Shader& voxShader = ResourceManager::LoadShader("shaders/Voxel.vert", "shaders/Voxel.frag", nullptr, "VoxelShader");
+    Shader& spriteShader = ResourceManager::LoadShader("shaders/Sprite.vert", "shaders/Sprite.frag", nullptr, "SpriteShader");
     //create voxel renderer
     vRenderer = new VoxelRenderer(voxShader, *this);
+    //create sprite renderer
+    sRenderer = new SpriteRenderer(spriteShader, *this);
     //create camera
     mainCamera = new Camera(glm::vec3(-38.3f, 21.8f, -21.7f), glm::vec3(0.0f, 1.0f, 0.0f), 29.0f, -28.6f);
     voxShader.SetMatrix4("projection", mainCamera->GetProjectionMatrix());
     //load level
     currentLevel = new Level(*vRenderer, *this);
     //load player object
-    player = new Player(VoxelLoader::loadModel("models/player.vox", "player"), vRenderer);
-    player->model.pos = glm::vec3(-8.0f, 6.0f, -1.5f);
-    player->model.scale = 0.5;
+    player = new Player(VoxelLoader::loadModel("models/player.vox", "player"), *this, vRenderer);
+    player->model.pos = glm::vec3(-8.0f, -3.0f, -1.5f);
+    player->model.scale = 0.125;
 }
 
 void Game::Update(float dt)
@@ -96,11 +100,13 @@ void Game::ProcessInput(float dt)
     }
 
     //Process player input
-    //...
+    player->processInput(dt);
 }
 
 void Game::Render(float dt)
 {
     player->draw();
     currentLevel->drawIslands();
+    //draw cursor
+    sRenderer->DrawSprite(ResourceManager::GetTexture("cursor"), glm::vec2(mouseX, mouseY));
 }

@@ -10,8 +10,14 @@
 
 class Player {
 public:
+	Game& game;
 	VoxelModel& model;
 
-	Player(VoxelModel& model, VoxelRenderer* renderer);
+	//movement
+	const float speed = 10.0f;
+
+	//methods
+	Player(VoxelModel& model, Game& game, VoxelRenderer* renderer);
 	void draw();
+	void processInput(float dt);
 };
