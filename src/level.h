@@ -4,7 +4,7 @@
 #include "VoxelLoader.h"
 #include <vector>
 
-class level {
+class Level {
 private:
 	VoxelRenderer&           renderer;
 	Game&                    game;
@@ -14,6 +14,6 @@ public:
 	glm::vec3 lightPos = glm::vec3(42.0f, 17.0f, -35.0f);
 	glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
-	level(VoxelRenderer& renderer, Game& game);
+	Level(VoxelRenderer& renderer, Game& game);
 	void drawIslands();
 };

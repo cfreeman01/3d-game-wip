@@ -10,10 +10,14 @@
 #include "VoxelLoader.h"
 #include "VoxelRenderer.h"
 #include "level.h"
+#include "player.h"
 
 using namespace std;
 
-audioPlayer Game::gameAudio;
+AudioPlayer Game::gameAudio;
+
+bool displayFrames = true;
+float lastDisplayTime = 0.0f;
 
 Game::Game(unsigned int width, unsigned int height)
     : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
@@ -40,14 +44,24 @@ void Game::Init()
     vRenderer = new VoxelRenderer(voxShader, *this);
     //create camera
     mainCamera = new Camera(glm::vec3(-38.3f, 21.8f, -21.7f), glm::vec3(0.0f, 1.0f, 0.0f), 29.0f, -28.6f);
+    voxShader.SetMatrix4("projection", mainCamera->GetProjectionMatrix());
     //load level
-    currentLevel = new level(*vRenderer, *this);
+    currentLevel = new Level(*vRenderer, *this);
+    //load player object
+    player = new Player(VoxelLoader::loadModel("models/player.vox", "player"), vRenderer);
+    player->model.pos = glm::vec3(-8.0f, 6.0f, -1.5f);
+    player->model.scale = 0.5;
 }
 
 void Game::Update(float dt)
 {
     elapsedTime += dt;
     mainCamera->rotate(dt);
+
+    if (displayFrames && elapsedTime - lastDisplayTime > 1.0f) {
+        lastDisplayTime = elapsedTime;
+        std::cout << 1 / dt << "FPS\n";
+    }
 }
 
 void Game::ProcessInput(float dt)
@@ -87,5 +101,6 @@ void Game::ProcessInput(float dt)
 
 void Game::Render(float dt)
 {
+    player->draw();
     currentLevel->drawIslands();
 }

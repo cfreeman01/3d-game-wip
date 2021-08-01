@@ -151,12 +151,12 @@ void VoxelRenderer::drawVoxel(Voxel& voxel, VoxelModel& voxelModel) {
     model = glm::scale(model, glm::vec3(modelScale));
     //--------------------------------
 
-    projection = game.mainCamera->GetProjectionMatrix();
+    //projection = game.mainCamera->GetProjectionMatrix();
     view = game.mainCamera->GetViewMatrix();
 
     shader.SetMatrix4("model", model);
     shader.SetMatrix4("view", view);
-    shader.SetMatrix4("projection", projection);
+    //shader.SetMatrix4("projection", projection);
 
     //get color
     unsigned int colorInt = voxelModel.palette[voxel.colorIndex];
@@ -176,17 +176,14 @@ void VoxelRenderer::drawVoxel(glm::vec3 pos, glm::vec3 color, float scale) {
     shader.Use();
     ResourceManager::GetTexture("empty").Bind();
     glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 projection = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
 
     model = glm::translate(model, pos);
     model = glm::scale(model, glm::vec3(scale));
-    projection = game.mainCamera->GetProjectionMatrix();
     view = game.mainCamera->GetViewMatrix();
 
     shader.SetMatrix4("model", model);
     shader.SetMatrix4("view", view);
-    shader.SetMatrix4("projection", projection);
     shader.SetVector3f("voxColor", color);
 
     glActiveTexture(GL_TEXTURE0);

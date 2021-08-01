@@ -2,7 +2,7 @@
 #include "miniaudio.h"
 #include <iostream>
 
-class audioPlayer {
+class AudioPlayer {
 private:
     ma_result result;
     ma_decoder decoder;
@@ -22,7 +22,7 @@ private:
         (void)pInput;
     }
 public:
-    audioPlayer() {
+    AudioPlayer() {
         //configure the device
         deviceConfig = ma_device_config_init(ma_device_type_playback);
         deviceConfig.playback.format = decoder.outputFormat;

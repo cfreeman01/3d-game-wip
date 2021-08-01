@@ -7,8 +7,9 @@
 #include "camera.h"
 
 //FORWARD DECLARATIONS
-class level;
+class Level;
 class VoxelRenderer;
+class Player;
 
 // Represents the current state of the game
 enum GameState {
@@ -24,9 +25,10 @@ class Game
 {
 public:
     GameState               State;
-    level*                  currentLevel;
+    Level*                  currentLevel;
     VoxelRenderer*          vRenderer;
     Camera*                 mainCamera;
+    Player*                 player;
     //input
     bool                    Keys[1024];
     bool                    mouse1 = false, mouse2 = false;
@@ -48,5 +50,5 @@ public:
     void Update(float dt);
     void Render(float dt);
     //audio
-    static audioPlayer gameAudio;
+    static AudioPlayer gameAudio;
 };

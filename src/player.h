@@ -6,11 +6,12 @@
 #include "shader.h"
 #include "resource_manager.h"
 #include "VoxelLoader.h"
+#include "VoxelModel.h"
 
-class player {
-private:
-	glm::vec3 position;
-
+class Player {
 public:
+	VoxelModel& model;
 
+	Player(VoxelModel& model, VoxelRenderer* renderer);
+	void draw();
 };
