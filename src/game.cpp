@@ -27,7 +27,7 @@ Game::Game(unsigned int width, unsigned int height)
     mouseY = (float)this->Height / 2;
     mouse1 = mouse2 = false;
 
-    playAreaHeight = Height - (Height / 5);
+    playAreaHeight = Height;
 }
 
 Game::~Game()
@@ -60,7 +60,10 @@ void Game::Init()
 void Game::Update(float dt)
 {
     elapsedTime += dt;
+
     mainCamera->rotate(dt);
+
+    player->moveBullets(dt);
 
     if (displayFrames && elapsedTime - lastDisplayTime > 1.0f) {
         lastDisplayTime = elapsedTime;
@@ -91,16 +94,16 @@ void Game::ProcessInput(float dt)
     }
     else {
         //possibly rotate camera
-        if (Keys[GLFW_KEY_Q])
+        if (Keys[GLFW_KEY_Q] && mainCamera->rotating == 0)
             mainCamera->rotating = -1;
-        if (Keys[GLFW_KEY_E])
+        if (Keys[GLFW_KEY_E] && mainCamera->rotating == 0)
             mainCamera->rotating = 1;
         mainCamera->ProcessMouseScroll(mouseWheelOffset);
         mouseWheelOffset = 0.0f;
-    }
 
-    //Process player input
-    player->processInput(dt);
+        //Process player input
+        player->processInput(dt);
+    }
 }
 
 void Game::Render(float dt)

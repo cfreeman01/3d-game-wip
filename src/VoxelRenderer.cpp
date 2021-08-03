@@ -117,9 +117,8 @@ void VoxelRenderer::drawVoxel(Voxel& voxel, VoxelModel& voxelModel) {
 }
 
 //draw a standalone voxel
-void VoxelRenderer::drawVoxel(glm::vec3 pos, glm::vec3 color, float scale) {
+void VoxelRenderer::drawVoxel(glm::vec3 pos, glm::vec3 color, float scale , float rotation ) {
     shader.Use();
-    ResourceManager::GetTexture("empty").Bind();
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
 

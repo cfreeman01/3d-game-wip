@@ -17,7 +17,7 @@ public:
 
 	void initRenderData();
 	void drawVoxel(Voxel& voxel, VoxelModel& model);              //draw a voxel that is part of a model
-	void drawVoxel(glm::vec3 pos, glm::vec3 color, float scale);  //draw a standalone voxel
+	void drawVoxel(glm::vec3 pos, glm::vec3 color, float scale = 1.0f, float rotation = 0.0f);  //draw a standalone voxel
 
 	VoxelRenderer(Shader& shader, Game& game);
 };
