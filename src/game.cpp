@@ -53,7 +53,7 @@ void Game::Init()
     currentLevel = new Level(*vRenderer, *this);
     //load player object
     player = new Player(VoxelLoader::loadModel("models/player.vox", "player"), *this, vRenderer);
-    player->model.pos = glm::vec3(-8.0f, -3.0f, -1.5f);
+    player->model.pos = glm::vec3(-8.0f, -2.0f, -1.5f);
     player->model.scale = 0.125;
 }
 

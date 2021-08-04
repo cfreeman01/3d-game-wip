@@ -1,22 +1,22 @@
 #pragma once
+#include "GameObject.h"
 #include "VoxelRenderer.h"
 #include <glm/glm.hpp>
 #include <vector>
 
-struct Voxel {
+struct Voxel: public GameObject {
 	int x, y, z;              //x,y,z position relative to model's position
 	unsigned int colorIndex;  //index into model's color palette
-	Voxel(unsigned int x, unsigned int y, unsigned int z, unsigned int colorIndex) : x(x), y(y), z(z), colorIndex(colorIndex) {}
+	Voxel(unsigned int x, unsigned int y, unsigned int z, unsigned int colorIndex) : GameObject(), x(x), y(y), z(z), colorIndex(colorIndex) {}
 };
 
-class VoxelModel {
+class VoxelModel: public GameObject {
 public:
-	glm::vec3 pos = glm::vec3(0.0f,0.0f,0.0f);   //position
-	int   sizeX = 0, sizeY = 0, sizeZ = 0;       //number of voxels in each direction
-	float rotateX = 0.0f, rotateY = 0.0f, rotateZ = 0.0f;  //rotation around each axis
-	float scale = 1.0f;
-
+	//voxels
 	std::vector<Voxel> Voxels;   //all of the voxels that make up the model
+	void updateVoxels();
+
+	//color palette
 	std::vector<unsigned int> palette = std::vector<unsigned int>(256, 0);
 
 	//rendering

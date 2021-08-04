@@ -11,14 +11,14 @@ public:
 	//storage of voxel models
 	static std::map<std::string, VoxelModel> models;
 
-	static void loadModelFromFile(const char* file, std::string name);
-
-	static unsigned int VoxelLoader::byteArrayToInt(char bytes[4]);
-	static char* getNextFourBytes(char bytes[4], char* buffer, int& i);
-
 	//load a voxel model from a .vox file
 	static VoxelModel& loadModel(const char* file, std::string name);
 
 	//get a voxel model from storage
 	static VoxelModel& getModel(std::string name);
+
+	static void loadModelFromFile(const char* file, std::string name);
+
+	static unsigned int VoxelLoader::byteArrayToInt(char bytes[4]);
+	static char* getNextFourBytes(char bytes[4], char* buffer, int& i);
 };

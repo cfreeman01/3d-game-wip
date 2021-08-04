@@ -83,20 +83,21 @@ void VoxelRenderer::drawVoxel(Voxel& voxel, VoxelModel& voxelModel) {
 	glm::mat4 view = glm::mat4(1.0f);
 
     float modelScale = voxelModel.scale;
-    glm::vec3 size = glm::vec3(voxelModel.sizeX, voxelModel.sizeY, voxelModel.sizeZ);
+    glm::vec3 size = glm::vec3(voxelModel.size.x, voxelModel.size.y, voxelModel.size.z);
 
     //TRANSFORMATIONS----------------
     model = glm::translate(model, voxelModel.pos);
 
     model = glm::translate(model, glm::vec3(size.x * 0.5 * modelScale, size.y * 0.5 * modelScale, size.z * 0.5 * modelScale));
-    model = glm::rotate(model, glm::radians(voxelModel.rotateX), glm::vec3(1.0f, 0.0f, 0.0f));
-    model = glm::rotate(model, glm::radians(voxelModel.rotateY), glm::vec3(0.0f, 1.0f, 0.0f));     
-    model = glm::rotate(model, glm::radians(voxelModel.rotateZ), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::rotate(model, glm::radians(voxelModel.rotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(voxelModel.rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));     
+    model = glm::rotate(model, glm::radians(voxelModel.rotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::translate(model, glm::vec3(-size.x * 0.5 * modelScale, -size.y * 0.5 * modelScale, -size.z * 0.5 * modelScale));
 
     model = glm::translate(model, glm::vec3(voxel.x * modelScale, voxel.y * modelScale, voxel.z * modelScale));
 
     model = glm::scale(model, glm::vec3(modelScale));
+    model = glm::translate(model, glm::vec3(0.5, 0.5, 0.5));
     //--------------------------------
 
     view = game.mainCamera->GetViewMatrix();

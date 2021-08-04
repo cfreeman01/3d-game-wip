@@ -95,9 +95,9 @@ void VoxelLoader::loadModelFromFile(const char* file, std::string name) {
 				if (newModel.Voxels.back().z > maxZ) maxZ = newModel.Voxels.back().z;
 			}
 			//set size
-			newModel.sizeX = (maxX - minX) + 1;
-			newModel.sizeY = (maxY - minY) + 1;
-			newModel.sizeZ = (maxZ - minZ) + 1;
+			newModel.size.x = (maxX - minX) + 1;
+			newModel.size.y = (maxY - minY) + 1;
+			newModel.size.z = (maxZ - minZ) + 1;
 			//adjust position so that (minX,minY,minZ) is at (0,0,0)
 			for (int i = 0; i < newModel.Voxels.size(); i++) {
 				Voxel& vox = newModel.Voxels[i];
