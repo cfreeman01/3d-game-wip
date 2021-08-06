@@ -1,17 +1,19 @@
 #include "player.h"
 #include <glm/gtx/intersect.hpp>
+#include "game.h"
+#include "gameObject.h"
+#include "shader.h"
+#include "resource_manager.h"
+#include "VoxelLoader.h"
+#include "VoxelModel.h"
+#include "audioPlayer.h"
+#include "level.h"
+#include "camera.h"
 
 AudioPlayer Player::shootAudio;
 AudioPlayer Player::movementAudio;
 
-Player::Player(VoxelModel& model, Game& game, VoxelRenderer* renderer): model(model), game(game){
-	this->model.renderer = renderer;
-}
-
-void Player::draw() {
-	model.draw();
-	drawBullets();
-}
+Player::Player(VoxelModel& model, Game& game) : Character(model, game) {}
 
 void Player::processInput(float dt) {
 	movePlayer(dt);
@@ -133,28 +135,5 @@ void Player::fire() {
 	glm::vec3 midPos = glm::vec3(0.5f * model.scale * model.size.x, 0.5f * model.scale * model.size.y, 0.5f * model.scale * model.size.z);
 	midPos = modelMat * glm::vec4(midPos, 1.0f);  //middle point of the player model
 
-	bullets.push_back(bullet(midPos, direction, model.rotate.y));
-}
-
-void Player::moveBullets(float dt) {
-	for (int i = 0; i < bullets.size(); i++) {
-		bullets[i].pos += dt * bulletSpeed * bullets[i].direction;
-
-		//check if out of bounds
-		if (bullets[i].pos.x >= game.currentLevel->levelSize/2 || bullets[i].pos.x <= -game.currentLevel->levelSize / 2
-			|| bullets[i].pos.y >= game.currentLevel->levelSize / 2 || bullets[i].pos.y <= -game.currentLevel->levelSize / 2
-			|| bullets[i].pos.z >= game.currentLevel->levelSize / 2 || bullets[i].pos.z <= -game.currentLevel->levelSize / 2) {
-			bullets.erase(bullets.begin() + i);
-			i--;
-		}
-	}
-
-	//check if bullets have collided with the environment
-	game.currentLevel->checkBulletCollisions(*this);
-}
-
-void Player::drawBullets() {
-	for (int i = 0; i < bullets.size(); i++) {
-		model.renderer->drawVoxel(bullets[i].pos, glm::vec3(1.0f, 0.6f, 0.0f), bulletScale, bullets[i].rotate.y);
-	}
+	bullets.push_back(bullet(midPos, direction, glm::vec3(1.0f, 0.4f, 0.0f), model.rotate.y));
 }

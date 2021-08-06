@@ -1,28 +1,24 @@
 #include "level.h"
 #include "player.h"
+#include "character.h"
+#include "VoxelRenderer.h"
+#include "VoxelModel.h"
+#include "VoxelLoader.h"
+#include "VoxelRenderer.h"
+#include "gameObject.h"
+#include "shader.h"
 
-Level::Level(VoxelRenderer& renderer, Game& game) : renderer(renderer), game(game) {
-	islands.push_back(VoxelLoader::loadModel("models/first_island.vox", "first_island"));
+Level::Level(VoxelRenderer* renderer, Game& game) : renderer(renderer), game(game) {
+	islands.push_back(VoxelLoader::loadModel("models/first_island.vox", "first_island", renderer));
 	islands[0].pos = glm::vec3(-(float)islands[0].size.x / 2, -(float)islands[0].size.y / 2, -(float)islands[0].size.z / 2);
-	renderer.shader.SetVector3f("lightPos", lightPos);
-	renderer.shader.SetVector3f("lightColor", lightColor);
-	islands[0].renderer = &renderer;
+	renderer->shader.SetVector3f("lightPos", lightPos);
+	renderer->shader.SetVector3f("lightColor", lightColor);
 }
 
 void Level::drawIslands() {
 	for (int i = 0; i < islands.size(); i++) {
 		islands[i].draw();
 	}
-
-	//draw references
-	renderer.drawVoxel(glm::vec3(-levelSize / 2, -levelSize / 2, -levelSize / 2), glm::vec3(1, 0, 0));
-	renderer.drawVoxel(glm::vec3(-levelSize / 2, -levelSize / 2, levelSize / 2), glm::vec3(1, 0, 0));
-	renderer.drawVoxel(glm::vec3(-levelSize / 2, levelSize / 2, -levelSize / 2), glm::vec3(1, 0, 0));
-	renderer.drawVoxel(glm::vec3(-levelSize / 2, levelSize / 2, levelSize / 2), glm::vec3(1, 0, 0));
-	renderer.drawVoxel(glm::vec3(levelSize / 2, -levelSize / 2, -levelSize / 2), glm::vec3(1, 0, 0));
-	renderer.drawVoxel(glm::vec3(levelSize / 2, -levelSize / 2, levelSize / 2), glm::vec3(1, 0, 0));
-	renderer.drawVoxel(glm::vec3(levelSize / 2, levelSize / 2, -levelSize / 2), glm::vec3(1, 0, 0));
-	renderer.drawVoxel(glm::vec3(levelSize / 2, levelSize / 2, levelSize / 2), glm::vec3(1, 0, 0));
 }
 
 //COLLISIONS--------
@@ -70,21 +66,6 @@ glm::vec3 Level::checkPlayerCollision(Player& player) {
 	}
 
 	return displacement;
-}
-
-void Level::checkBulletCollisions(Player& player) {
-	for (int i = 0; i < player.bullets.size(); i++) {
-		for (int j = 0; j < islands.size(); j++) {
-			if (checkCollisionAABB(player.bullets[i], islands[j]) == glm::vec3(0, 0, 0)) continue;  //if bullet is not in the vicinity of the island, don't check it for collisions
-			for (int k = 0; k < islands[j].Voxels.size(); k++) {
-				if (checkCollisionAABB(player.bullets[i], islands[j].Voxels[k]) != glm::vec3(0, 0, 0)) { //if a bullet has collided with the level
-					player.bullets.erase(player.bullets.begin() + i);
-					i--;
-					break;
-				}
-			}
-		}
-	}
 }
 //------------------
 

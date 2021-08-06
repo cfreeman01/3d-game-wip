@@ -1,8 +1,15 @@
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glad/glad.h>
 #include "VoxelRenderer.h"
 #include "VoxelModel.h"
 #include "resource_manager.h"
-#include <glm/glm.hpp>
-#include <glad/glad.h>
+#include "character.h"
+#include "shader.h"
+#include "texture.h"
+#include "game.h"
+#include "camera.h"
 
 float voxelVertices[] = {
     //vertices              //normals
@@ -76,62 +83,94 @@ void VoxelRenderer::initRenderData() {
 }
 
 //draw a voxel that is part of a model
-void VoxelRenderer::drawVoxel(Voxel& voxel, VoxelModel& voxelModel) {
+void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel) {
     shader.Use();
-	glm::mat4 model = glm::mat4(1.0f);
+    glBindVertexArray(VAO);
+	glm::mat4 model1 = glm::mat4(1.0f);
+    glm::mat4 model2 = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);
 	glm::mat4 view = glm::mat4(1.0f);
-
+    
     float modelScale = voxelModel.scale;
     glm::vec3 size = glm::vec3(voxelModel.size.x, voxelModel.size.y, voxelModel.size.z);
 
-    //TRANSFORMATIONS----------------
-    model = glm::translate(model, voxelModel.pos);
+    //calculate transformation matrices
+    model1 = glm::scale(model1, glm::vec3(modelScale));
+    model1 = glm::translate(model1, glm::vec3(0.5, 0.5, 0.5));
 
-    model = glm::translate(model, glm::vec3(size.x * 0.5 * modelScale, size.y * 0.5 * modelScale, size.z * 0.5 * modelScale));
-    model = glm::rotate(model, glm::radians(voxelModel.rotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    model = glm::rotate(model, glm::radians(voxelModel.rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));     
-    model = glm::rotate(model, glm::radians(voxelModel.rotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    model = glm::translate(model, glm::vec3(-size.x * 0.5 * modelScale, -size.y * 0.5 * modelScale, -size.z * 0.5 * modelScale));
-
-    model = glm::translate(model, glm::vec3(voxel.x * modelScale, voxel.y * modelScale, voxel.z * modelScale));
-
-    model = glm::scale(model, glm::vec3(modelScale));
-    model = glm::translate(model, glm::vec3(0.5, 0.5, 0.5));
-    //--------------------------------
+    model2 = glm::translate(model2, voxelModel.pos);
+    model2 = glm::translate(model2, glm::vec3(size.x * 0.5 * modelScale, size.y * 0.5 * modelScale, size.z * 0.5 * modelScale));
+    model2 = glm::rotate(model2, glm::radians(voxelModel.rotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    model2 = glm::rotate(model2, glm::radians(voxelModel.rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));     
+    model2 = glm::rotate(model2, glm::radians(voxelModel.rotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    model2 = glm::translate(model2, glm::vec3(-size.x * 0.5 * modelScale, -size.y * 0.5 * modelScale, -size.z * 0.5 * modelScale));
 
     view = game.mainCamera->GetViewMatrix();
+    projection = game.mainCamera->GetProjectionMatrix();
 
-    shader.SetMatrix4("model", model);
+    shader.SetMatrix4("model1", model1);
+    shader.SetMatrix4("model2", model2);
     shader.SetMatrix4("view", view);
+    shader.SetMatrix4("projection", projection);
+    shader.SetFloat("modelScale", modelScale);
 
-    //get color
-    unsigned int colorInt = voxelModel.palette[voxel.colorIndex];
-    unsigned int R = (colorInt & 0x000000ff);
-    unsigned int G = (colorInt & 0x0000ff00) >> 8;
-    unsigned int B = (colorInt & 0x00ff0000) >> 16;
-    shader.SetVector3f("voxColor", glm::vec3((float)R/255, (float)G/255, (float)B/255));
+    //pass in instanced data
+    unsigned int instanceVBO;
+    glGenBuffers(1, &instanceVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VoxelRenderData) * voxelModel.Voxels.size(), voxelModel.vRenderData, GL_STATIC_DRAW);
 
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    //offset
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(VoxelRenderData), (void*)0);
+    glVertexAttribDivisor(2, 1);
+
+    //color
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(VoxelRenderData), (void*)(3 * sizeof(float)));
+    glVertexAttribDivisor(3, 1);
+
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, voxelModel.Voxels.size());
     glBindVertexArray(0);
 }
 
-//draw a standalone voxel
-void VoxelRenderer::drawVoxel(glm::vec3 pos, glm::vec3 color, float scale , float rotation ) {
+//draw a set of bullets for a character
+void VoxelRenderer::drawBullets(Character& character) {
     shader.Use();
-    glm::mat4 model = glm::mat4(1.0f);
+    glBindVertexArray(VAO);
+    glm::mat4 model1 = glm::mat4(1.0f);
+    glm::mat4 model2 = glm::mat4(1.0f);
+    glm::mat4 projection = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
 
-    model = glm::translate(model, pos);
-    model = glm::scale(model, glm::vec3(scale));
+    model1 = glm::scale(model1, glm::vec3(character.bulletScale));
+    model1 = glm::translate(model1, glm::vec3(0.5, 0.5, 0.5));
+
     view = game.mainCamera->GetViewMatrix();
+    projection = game.mainCamera->GetProjectionMatrix();
 
-    shader.SetMatrix4("model", model);
+    shader.SetMatrix4("model1", model1);
+    shader.SetMatrix4("model2", model2);
     shader.SetMatrix4("view", view);
-    shader.SetVector3f("voxColor", color);
+    shader.SetMatrix4("projection", projection);
+    shader.SetFloat("modelScale", 1.0f);
 
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    //pass in instanced data
+    unsigned int instanceVBO;
+    glGenBuffers(1, &instanceVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(bullet) * character.bullets.size(), &character.bullets[0], GL_STATIC_DRAW);
+
+    //bullet position
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(bullet), (void*)0);
+    glVertexAttribDivisor(2, 1);
+
+    //color
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(bullet), (void*)(3 * sizeof(float)));
+    glVertexAttribDivisor(3, 1);
+
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, character.bullets.size());
     glBindVertexArray(0);
 }

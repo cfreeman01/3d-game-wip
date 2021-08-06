@@ -1,13 +1,17 @@
 #pragma once
-#include "VoxelRenderer.h"
-#include "VoxelModel.h"
-#include "VoxelLoader.h"
-#include "gameObject.h"
 #include <vector>
+#include <glm/glm.hpp>
+
+//FORWARD DECLARATIONS
+class VoxelRenderer;
+class Game;
+class VoxelModel;
+class GameObject;
+class Player;
 
 class Level {
 private:
-	VoxelRenderer&           renderer;
+	VoxelRenderer*           renderer;
 	Game&                    game;
 	std::vector<VoxelModel>  islands;
 public:
@@ -20,8 +24,7 @@ public:
 	//collisions
 	static glm::vec3 checkCollisionAABB(GameObject& one, GameObject& two);
 	glm::vec3 checkPlayerCollision(Player& player);
-	void checkBulletCollisions(Player& player);
 
-	Level(VoxelRenderer& renderer, Game& game);
+	Level(VoxelRenderer* renderer, Game& game);
 	void drawIslands();
 };

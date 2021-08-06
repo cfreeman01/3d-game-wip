@@ -1,27 +1,30 @@
 #pragma once
-#include "GameObject.h"
-#include "VoxelRenderer.h"
 #include <glm/glm.hpp>
 #include <vector>
+#include "gameObject.h"
+
+//FORWARD DECLARATIONS
+class VoxelRenderer;
 
 struct Voxel: public GameObject {
-	int x, y, z;              //x,y,z position relative to model's position
-	unsigned int colorIndex;  //index into model's color palette
-	Voxel(unsigned int x, unsigned int y, unsigned int z, unsigned int colorIndex) : GameObject(), x(x), y(y), z(z), colorIndex(colorIndex) {}
+	/*holds voxel data that is not passed to the shader*/
+	int colorIndex = 0;
+};
+
+struct VoxelRenderData {
+	/*holds voxel data that is passed to the shader*/
+	float x, y, z;   //offset from model position
+	float R, G, B;   //color
 };
 
 class VoxelModel: public GameObject {
 public:
-	//voxels
-	std::vector<Voxel> Voxels;   //all of the voxels that make up the model
-	void updateVoxels();
+	std::vector<Voxel> Voxels;      //voxel position data
+	VoxelRenderData*   vRenderData; //render data stored as dynamically allocated array
+	VoxelRenderer*     renderer;
 
-	//color palette
-	std::vector<unsigned int> palette = std::vector<unsigned int>(256, 0);
-
-	//rendering
-	VoxelRenderer* renderer;
 	void draw();
+	void updateVoxels();
 
 	VoxelModel(VoxelRenderer* renderer = nullptr);
 };

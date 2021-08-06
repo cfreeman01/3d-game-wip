@@ -1,12 +1,11 @@
 #pragma once
-#include "shader.h"
-#include "texture.h"
-#include "game.h"
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
-struct Voxel;     //forward declarations, full declarations in VoxelModel.h
+//FORWARD DECLARATIONS
+class Game;
+struct Voxel;
 class VoxelModel;
+class Character;
+class Shader;
 
 //contains data and methods to render voxels
 class VoxelRenderer {
@@ -16,8 +15,8 @@ public:
 	Game&         game;
 
 	void initRenderData();
-	void drawVoxel(Voxel& voxel, VoxelModel& model);              //draw a voxel that is part of a model
-	void drawVoxel(glm::vec3 pos, glm::vec3 color, float scale = 1.0f, float rotation = 0.0f);  //draw a standalone voxel
+	void drawVoxelModel(VoxelModel& model);    //draw a voxel model
+	void drawBullets(Character& character);    //draw a set of bullets for a character
 
 	VoxelRenderer(Shader& shader, Game& game);
 };

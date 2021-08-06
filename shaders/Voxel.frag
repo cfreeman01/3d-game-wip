@@ -8,9 +8,9 @@
 
 in vec3 Normal;
 in vec3 fragPos;
+in vec3 voxColor;
 out vec4 FragColor;
 
-uniform vec3 voxColor;
 uniform vec3 lightPos;
 uniform vec3 lightColor;
 

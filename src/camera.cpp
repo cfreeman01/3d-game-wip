@@ -94,7 +94,7 @@ void Camera::rotate(float dt) {
     //calculate rotation amount for this frame
     float rotation;
     if (degreesRotated + (90 * dt) > 90) rotation = 90 - degreesRotated;
-    else rotation = 90 * dt;
+    else rotation = 120 * dt;
     degreesRotated += rotation;
 
     if (rotating == 1) { //clockwise

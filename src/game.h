@@ -1,16 +1,16 @@
 #pragma once
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
-#include "audioPlayer.h"
-#include "camera.h"
 
 //FORWARD DECLARATIONS
 class Level;
 class VoxelRenderer;
+class Character;
 class Player;
 class SpriteRenderer;
+class Camera;
+class AudioPlayer;
 
 // Represents the current state of the game
 enum GameState {
