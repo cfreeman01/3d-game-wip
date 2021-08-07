@@ -4,12 +4,16 @@
 //FORWARD DECLARATIONS 
 class Game;
 class VoxelModel;
+class VoxelRenderer;
 class AudioPlayer;
 
 class Player: public Character {
 public:
+	void updateState();
+	static void loadModels(VoxelRenderer* renderer);
+
 	//constructors
-	Player(VoxelModel& model, Game& game);
+	Player(VoxelModel& model, Game& game, VoxelRenderer& renderer);
 
 	//input
 	void fire();

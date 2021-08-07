@@ -9,7 +9,7 @@
 #include "level.h"
 
 void Character::draw() {
-	model.draw();
+	renderer.drawVoxelModel(model,*this);
 	drawBullets();
 }
 
@@ -31,5 +31,5 @@ void Character::moveBullets(float dt) {
 
 void Character::drawBullets() {
 	if (bullets.empty()) return;
-	model.renderer->drawBullets(*this);
+	renderer.drawBullets(*this);
 }

@@ -83,27 +83,26 @@ void VoxelRenderer::initRenderData() {
 }
 
 //draw a voxel that is part of a model
-void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel) {
+void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel, GameObject& object) {
     shader.Use();
     glBindVertexArray(VAO);
-	glm::mat4 model1 = glm::mat4(1.0f);
+    glm::mat4 model1 = glm::mat4(1.0f);
     glm::mat4 model2 = glm::mat4(1.0f);
-	glm::mat4 projection = glm::mat4(1.0f);
-	glm::mat4 view = glm::mat4(1.0f);
-    
-    float modelScale = voxelModel.scale;
-    glm::vec3 size = glm::vec3(voxelModel.size.x, voxelModel.size.y, voxelModel.size.z);
+    glm::mat4 projection = glm::mat4(1.0f);
+    glm::mat4 view = glm::mat4(1.0f);
+
+    float modelScale = object.scale;
 
     //calculate transformation matrices
     model1 = glm::scale(model1, glm::vec3(modelScale));
     model1 = glm::translate(model1, glm::vec3(0.5, 0.5, 0.5));
 
-    model2 = glm::translate(model2, voxelModel.pos);
-    model2 = glm::translate(model2, glm::vec3(size.x * 0.5 * modelScale, size.y * 0.5 * modelScale, size.z * 0.5 * modelScale));
-    model2 = glm::rotate(model2, glm::radians(voxelModel.rotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    model2 = glm::rotate(model2, glm::radians(voxelModel.rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));     
-    model2 = glm::rotate(model2, glm::radians(voxelModel.rotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    model2 = glm::translate(model2, glm::vec3(-size.x * 0.5 * modelScale, -size.y * 0.5 * modelScale, -size.z * 0.5 * modelScale));
+    model2 = glm::translate(model2, object.pos);
+    model2 = glm::translate(model2, glm::vec3(voxelModel.size.x * 0.5 * modelScale, voxelModel.size.y * 0.5 * modelScale, voxelModel.size.z * 0.5 * modelScale));
+    model2 = glm::rotate(model2, glm::radians(object.rotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    model2 = glm::rotate(model2, glm::radians(object.rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    model2 = glm::rotate(model2, glm::radians(object.rotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    model2 = glm::translate(model2, glm::vec3(-voxelModel.size.x * 0.5 * modelScale, -voxelModel.size.y * 0.5 * modelScale, -voxelModel.size.z * 0.5 * modelScale));
 
     view = game.mainCamera->GetViewMatrix();
     projection = game.mainCamera->GetProjectionMatrix();
@@ -118,7 +117,7 @@ void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel) {
     unsigned int instanceVBO;
     glGenBuffers(1, &instanceVBO);
     glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(VoxelRenderData) * voxelModel.Voxels.size(), voxelModel.vRenderData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VoxelRenderData) * voxelModel.numVoxels, voxelModel.vRenderData, GL_STATIC_DRAW);
 
     //offset
     glEnableVertexAttribArray(2);
@@ -130,7 +129,7 @@ void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel) {
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(VoxelRenderData), (void*)(3 * sizeof(float)));
     glVertexAttribDivisor(3, 1);
 
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, voxelModel.Voxels.size());
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, voxelModel.numVoxels);
     glBindVertexArray(0);
 }
 

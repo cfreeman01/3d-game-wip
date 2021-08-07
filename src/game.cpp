@@ -54,14 +54,14 @@ void Game::Init()
     mainCamera = new Camera(glm::vec3(-38.3f, 21.8f, -21.7f), glm::vec3(0.0f, 1.0f, 0.0f), 29.0f, -28.6f);
     voxShader.SetMatrix4("projection", mainCamera->GetProjectionMatrix());
     //load level
-    currentLevel = new Level(vRenderer, *this);
+    currentLevel = new Level(*vRenderer, *this);
     //load models
-    VoxelLoader::loadModel("models/player.vox", "player", vRenderer);
-    VoxelLoader::loadModel("models/enemy1.vox", "enemy1", vRenderer);
+    Player::loadModels(vRenderer);
+    VoxelLoader::loadModel("models/enemy1.vox", "enemy1");
     //load player object
-    player = new Player(VoxelLoader::getModel("player_0"), *this);
-    player->model.pos = glm::vec3(-8.0f, -2.0f, -1.5f);
-    player->model.scale = 0.125;
+    player = new Player(VoxelLoader::getModel("player_0"), *this, *vRenderer);
+    player->pos = glm::vec3(-8.0f, -2.0f, -1.5f);
+    player->scale = 0.1;
 }
 
 void Game::Update(float dt)

@@ -4,9 +4,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
+#include "gameObject.h"
+
 //FORWARD DECLARATIONS
 class Game;
 class VoxelModel;
+class VoxelRenderer;
 
 struct bullet {
 	float x, y, z;   //position
@@ -25,11 +28,14 @@ struct bullet {
 	}
 };
 
-class Character {
+class Character: public GameObject{
 public:
 	Game& game;
 	VoxelModel& model;
+	VoxelRenderer& renderer;
 	std::vector<bullet> bullets;
+
+	virtual void updateState() = 0;
 
 	//consts
 	const float speed = 10.0f;
@@ -37,7 +43,7 @@ public:
 	const float bulletScale = 0.5f;
 
 	//constructors
-	Character(VoxelModel& model, Game& game) : model(model), game(game) {}
+	Character(VoxelModel& model, Game& game, VoxelRenderer& renderer) : GameObject(), model(model), game(game), renderer(renderer){}
 
 	//rendering
 	void draw();

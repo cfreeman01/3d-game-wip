@@ -8,16 +8,28 @@
 #include "gameObject.h"
 #include "shader.h"
 
-Level::Level(VoxelRenderer* renderer, Game& game) : renderer(renderer), game(game) {
-	islands.push_back(VoxelLoader::loadModel("models/first_island.vox", "first_island", renderer));
-	islands[0].pos = glm::vec3(-(float)islands[0].size.x / 2, -(float)islands[0].size.y / 2, -(float)islands[0].size.z / 2);
-	renderer->shader.SetVector3f("lightPos", lightPos);
-	renderer->shader.SetVector3f("lightColor", lightColor);
+Island::Island(VoxelModel& model) : model(model) {
+	Voxels = std::vector<GameObject>(model.numVoxels);
+}
+
+void Island::updateVoxels() {
+	for (int i = 0; i < Voxels.size(); i++) {
+		Voxels[i].rotate = rotate;
+		Voxels[i].scale = scale;
+		Voxels[i].pos = pos + glm::vec3(model.vRenderData[i].x * scale, model.vRenderData[i].y * scale, model.vRenderData[i].z * scale);
+	}
+}
+
+Level::Level(VoxelRenderer& renderer, Game& game) : renderer(renderer), game(game) {
+	islands.push_back(Island(VoxelLoader::loadModel("models/first_island.vox", "first_island")));
+	islands[0].pos = glm::vec3(-(float)islands[0].model.size.x / 2, -(float)islands[0].model.size.y / 2, -(float)islands[0].model.size.z / 2);
+	renderer.shader.SetVector3f("lightPos", lightPos);
+	renderer.shader.SetVector3f("lightColor", lightColor);
 }
 
 void Level::drawIslands() {
 	for (int i = 0; i < islands.size(); i++) {
-		islands[i].draw();
+		renderer.drawVoxelModel(islands[i].model, islands[i]);
 	}
 }
 
@@ -56,8 +68,9 @@ glm::vec3 Level::checkPlayerCollision(Player& player) {
 	glm::vec3 displacement = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	for (int i = 0; i < islands.size(); i++) {
+		islands[i].updateVoxels();
 		for (int j = 0; j < islands[i].Voxels.size(); j++) {
-			displacement = checkCollisionAABB(player.model, islands[i].Voxels[j]);
+			displacement = checkCollisionAABB(player, islands[i].Voxels[j]);
 			if (displacement != glm::vec3(0.0f, 0.0f, 0.0f)) {
 				break;
 			}

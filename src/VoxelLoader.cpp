@@ -10,9 +10,9 @@
 std::map<std::string, VoxelModel> VoxelLoader::models;
 bool displayFileContents = true;
 
-VoxelModel& VoxelLoader::loadModel(const char* file, std::string name, VoxelRenderer* renderer) {
-	loadModelFromFile(file, name, renderer);
-	return models[name + "_0"];
+VoxelModel& VoxelLoader::loadModel(const char* file, std::string name) {
+	loadModelFromFile(file, name);
+	return models[name];
 }
 
 VoxelModel& VoxelLoader::getModel(std::string name) {
@@ -21,7 +21,7 @@ VoxelModel& VoxelLoader::getModel(std::string name) {
 
 //parse a VOX file and store the data in a VoxelModel object
 //VOX file format specification: https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt
-void VoxelLoader::loadModelFromFile(const char* file, std::string name, VoxelRenderer* renderer) {
+void VoxelLoader::loadModelFromFile(const char* file, std::string name) {
 	char bytes[4];
 	std::ifstream input(file, std::ios::binary);
 	if (input.fail()) {
@@ -58,8 +58,12 @@ void VoxelLoader::loadModelFromFile(const char* file, std::string name, VoxelRen
 
 		//READ MODEL FROM FILE---------
 		if (strncmp(bytes, "SIZE", 4) == 0) {
-			VoxelModel& newModel = models[name + "_" + (char)('0' + modelNum)] = VoxelModel();
-			newModel.renderer = renderer;
+			std::string newName;
+			if (modelNum > 0)
+				newName = name + "_" + (char)('0' + modelNum);
+			else
+				newName = name;
+			VoxelModel& newModel = models[newName] = VoxelModel();
 			modelNum++;
 			getNextFourBytes(bytes, buffer, i);  //read num bytes of chunk content (should be 12)
 			getNextFourBytes(bytes, buffer, i);  //read num bytes of children chunks (should be 0)
@@ -78,16 +82,16 @@ void VoxelLoader::loadModelFromFile(const char* file, std::string name, VoxelRen
 
 			int numVoxels = byteArrayToInt(getNextFourBytes(bytes, buffer, i));
 			newModel.vRenderData = new VoxelRenderData[numVoxels]; //initialize model's VoxelRenderData array
+			newModel.numVoxels = numVoxels;
 			int minX = INT_MAX, minY = INT_MAX, minZ = INT_MAX;
 			int maxX = INT_MIN, maxY = INT_MIN, maxZ = INT_MIN;
 
 			for (int j = 0; j < numVoxels; j++) {  //get the voxels
 				getNextFourBytes(bytes, buffer, i);
-				newModel.Voxels.push_back(Voxel());
 				newModel.vRenderData[j].x = (int)(unsigned char)bytes[0];  //x
 				newModel.vRenderData[j].y = (int)(unsigned char)bytes[2];  //y
 				newModel.vRenderData[j].z = (int)(unsigned char)bytes[1];  //z
-				newModel.Voxels[j].colorIndex = (int)(unsigned char)bytes[3];    //colorIndex
+				newModel.vRenderData[j].colorIndex = (int)(unsigned char)bytes[3];    //colorIndex
 
 				//check min and max x values (to calculate size)
 				if (newModel.vRenderData[j].x < minX) minX = newModel.vRenderData[j].x;
@@ -122,10 +126,15 @@ void VoxelLoader::loadModelFromFile(const char* file, std::string name, VoxelRen
 			}
 
 			for (int j = 0; j < modelNum; j++) {  //assign colors to all of the voxels
-				VoxelModel& currentModel = models[name + "_" + (char)('0' + j)];
-				for (int k = 0; k < currentModel.Voxels.size(); k++) {
+				std::string modelName;
+				if (j > 0)
+					modelName = name + "_" + (char)('0' + j);
+				else
+					modelName = name;
+				VoxelModel& currentModel = models[modelName];
+				for (int k = 0; k < currentModel.numVoxels; k++) {
 					//get color from palette
-					unsigned int colorInt = newPalette[currentModel.Voxels[k].colorIndex];
+					unsigned int colorInt = newPalette[currentModel.vRenderData[k].colorIndex];
 					//calculate RGB components
 					unsigned int R = (colorInt & 0x000000ff);
 					unsigned int G = (colorInt & 0x0000ff00) >> 8;

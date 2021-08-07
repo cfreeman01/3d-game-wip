@@ -2,6 +2,7 @@
 
 //FORWARD DECLARATIONS
 class Game;
+class GameObject;
 struct Voxel;
 class VoxelModel;
 class Character;
@@ -15,7 +16,7 @@ public:
 	Game&         game;
 
 	void initRenderData();
-	void drawVoxelModel(VoxelModel& model);    //draw a voxel model
+	void drawVoxelModel(VoxelModel& model, GameObject& object);    //draw a voxel model
 	void drawBullets(Character& character);    //draw a set of bullets for a character
 
 	VoxelRenderer(Shader& shader, Game& game);

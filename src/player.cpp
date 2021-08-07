@@ -13,7 +13,18 @@
 AudioPlayer Player::shootAudio;
 AudioPlayer Player::movementAudio;
 
-Player::Player(VoxelModel& model, Game& game) : Character(model, game) {}
+Player::Player(VoxelModel& model, Game& game, VoxelRenderer& renderer) : Character(model, game, renderer) {
+	size = model.size;
+}
+
+void Player::updateState() {
+
+}
+
+void Player::loadModels(VoxelRenderer* renderer) {
+	VoxelLoader::loadModel("models/player_0.vox", "player_0");
+	VoxelLoader::loadModel("models/player_0.vox", "player_1");
+}
 
 void Player::processInput(float dt) {
 	movePlayer(dt);
@@ -28,7 +39,7 @@ void Player::processInput(float dt) {
 }
 
 void Player::movePlayer(float dt) {
-	glm::vec3 fb = game.mainCamera->Position - this->model.pos; //vector from player to camera (forward/back movement)
+	glm::vec3 fb = game.mainCamera->Position - this->pos; //vector from player to camera (forward/back movement)
 	fb = glm::normalize(glm::vec3(fb.x, 0, fb.z));
 
 	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -52,13 +63,13 @@ void Player::movePlayer(float dt) {
 	//now move the player along x and z axis check for collisions
 	glm::vec3 displacement = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	model.pos.x += movement.x;
+	pos.x += movement.x;
 	displacement = game.currentLevel->checkPlayerCollision(*this);
-	model.pos.x += displacement.x;
+	pos.x += displacement.x;
 
-	model.pos.z += movement.z;
+	pos.z += movement.z;
 	displacement = game.currentLevel->checkPlayerCollision(*this);
-	model.pos.z += displacement.z;
+	pos.z += displacement.z;
 }
 
 void Player::moveVertical(float dt) {
@@ -71,17 +82,17 @@ void Player::moveVertical(float dt) {
 	}
 
 	if (grounded) {  //move player down and get displacement to test if there is ground below him
-		model.pos.y += speed * dt * verticalVelocity; 
+		pos.y += speed * dt * verticalVelocity; 
 		glm::vec3 displacement = game.currentLevel->checkPlayerCollision(*this);
-		model.pos.y += displacement.y;
+		pos.y += displacement.y;
 		if (displacement.y <= 0) grounded = false; //if there is no ground below him, set grounded to false
 	}
 
 	if (!grounded) {
-		model.pos.y += speed * dt * verticalVelocity; //move player vertically and then test for a collision
+		pos.y += speed * dt * verticalVelocity; //move player vertically and then test for a collision
 		verticalVelocity -= dt;
 		glm::vec3 displacement = game.currentLevel->checkPlayerCollision(*this);
-		model.pos.y += displacement.y;
+		pos.y += displacement.y;
 
 		if (displacement.y > 0) {  //if the displacement from collision resolution is positive, then the player has hit the ground
 			movementAudio.play("audio/player_land.mp3");
@@ -99,8 +110,8 @@ void Player::rotatePlayer(float dt) {
 	glm::mat4 view = game.mainCamera->GetViewMatrix();
 
 	//obtain midPos, the point at the middle of the player model
-	modelMat = glm::translate(modelMat, model.pos);
-	glm::vec3 midPos = glm::vec3(0.5f * model.scale * model.size.x, 0.5f * model.scale * model.size.y, 0.5f * model.scale * model.size.z);
+	modelMat = glm::translate(modelMat, pos);
+	glm::vec3 midPos = glm::vec3(0.5f * scale * model.size.x, 0.5f * scale * model.size.y, 0.5f * scale * model.size.z);
 	midPos = modelMat * glm::vec4(midPos, 1.0f);
 
 	//get intersection of line pointing from the cursor with the plane: y = midPos.y
@@ -121,19 +132,19 @@ void Player::rotatePlayer(float dt) {
 	}
 
 	//finally, rotate the player
-	model.rotate.y = glm::degrees(angle);
+	rotate.y = glm::degrees(angle);
 }
 
 void Player::fire() {
 	shootAudio.play("audio/gunshot.mp3");
 	glm::mat4 modelMat = glm::mat4(1.0f);
-	modelMat = glm::rotate(modelMat, glm::radians(model.rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	modelMat = glm::rotate(modelMat, glm::radians(rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::vec3 direction = glm::normalize(modelMat * glm::vec4(-1.0f, 0.0f, 0.0f, 1.0f)); //direction the player is facing
 
 	modelMat = glm::mat4(1.0f);
-	modelMat = glm::translate(modelMat, model.pos);
-	glm::vec3 midPos = glm::vec3(0.5f * model.scale * model.size.x, 0.5f * model.scale * model.size.y, 0.5f * model.scale * model.size.z);
+	modelMat = glm::translate(modelMat, pos);
+	glm::vec3 midPos = glm::vec3(0.5f * scale * model.size.x, 0.5f * scale * model.size.y, 0.5f * scale * model.size.z);
 	midPos = modelMat * glm::vec4(midPos, 1.0f);  //middle point of the player model
 
-	bullets.push_back(bullet(midPos, direction, glm::vec3(1.0f, 0.4f, 0.0f), model.rotate.y));
+	bullets.push_back(bullet(midPos, direction, glm::vec3(1.0f, 0.4f, 0.0f), rotate.y));
 }
