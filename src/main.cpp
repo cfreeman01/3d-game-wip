@@ -84,7 +84,7 @@ int main()
         game.Update(deltaTime);
 
         // render
-        glClearColor(0.69f, 0.87f, 1.0f, 1.0f);
+        glClearColor(1.0f, 0.87f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         game.Render(deltaTime);
 

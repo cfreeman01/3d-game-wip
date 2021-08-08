@@ -5,53 +5,55 @@
 #include <vector>
 
 #include "gameObject.h"
+#include "trailGenerator.h"
 
 //FORWARD DECLARATIONS
 class Game;
 class VoxelModel;
 class VoxelRenderer;
 
-struct bullet {
-	float x, y, z;   //position
-	float R, G, B;   //color
-	float rotation;  //rotation around y-axis
+struct bullet: public GameObject {
+	glm::vec3 color;
 	glm::vec3 direction;  //direction of movement
+	TrailGenerator trail;
 
-	bullet(glm::vec3 pos, glm::vec3 direction, glm::vec3 color, float rotation) : direction(direction) {
-		x = pos.x;
-		y = pos.y;
-		z = pos.z;
-		R = color.x;
-		G = color.y;
-		B = color.z;
-		this->rotation = rotation;
+	bullet(glm::vec3 pos, glm::vec3 direction, glm::vec3 color, float rotation, float scale): color(color), direction(direction) {
+		this->pos = pos;
+		this->rotate.y = rotation;
+		this->scale = scale;
+		trail = TrailGenerator(*this, color);
 	}
 };
 
+/*base class for the player and all enemies*/
 class Character: public GameObject{
 public:
 	Game& game;
-	VoxelModel& model;
-	VoxelRenderer& renderer;
-	std::vector<bullet> bullets;
+	virtual void updateState(float dt) = 0;
 
-	virtual void updateState() = 0;
+	//models and animation
+	std::vector<VoxelModel*> charModels;  //Voxel models that the character cycles through
+	int modelIndex = 0;                   //index into charModels
+	float lastModelUpdate = 0.0f;
+	float modelUpdateDelay; 
 
-	//consts
-	const float speed = 10.0f;
-	const float bulletSpeed = 18.0f;
-	const float bulletScale = 0.5f;
+	//movement speed
+	float speed;
 
 	//constructors
-	Character(VoxelModel& model, Game& game, VoxelRenderer& renderer) : GameObject(), model(model), game(game), renderer(renderer){}
+	Character(Game& game, VoxelRenderer& renderer) : GameObject(), game(game), renderer(renderer){}
 
 	//rendering
+	VoxelRenderer& renderer;
 	void draw();
 	void drawBullets();
 
 	//bullets
+	std::vector<bullet> bullets;
 	virtual void fire() = 0;
 	void moveBullets(float dt);
 	float lastFireTime = 0.0f;
 	float fireCooldown = 0.5f;
+	float bulletSpeed;
+	float bulletScale;
 };

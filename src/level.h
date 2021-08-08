@@ -8,6 +8,7 @@ class VoxelRenderer;
 class Game;
 class VoxelModel;
 class Player;
+class Character;
 
 class Island : public GameObject {
 	/*holds position data for an island and a reference to the model data*/
@@ -33,6 +34,7 @@ public:
 	//collisions
 	static glm::vec3 checkCollisionAABB(GameObject& one, GameObject& two);
 	glm::vec3 checkPlayerCollision(Player& player);
+	void checkBulletsCollisions(Character& character);
 
 	Level(VoxelRenderer& renderer, Game& game);
 	void drawIslands();

@@ -8,7 +8,10 @@
 class VoxelModel;
 class VoxelRenderer;
 
-//loads voxel model from .vox files and stores them in appropriate data structures
+/*loads data from .VOX files and stores it in VoxelModel objects. the VoxelModel objects are stored in a static map
+and are retrieved via reference (so there is only one instance of each model). this is sufficient since the VoxelModel
+data does not change, so all changing data (like world position) can be stored in other data types that hold a reference
+to the appropriate VoxelModel*/
 class VoxelLoader {
 public:
 	//storage of voxel models

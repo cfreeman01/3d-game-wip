@@ -9,27 +9,33 @@
 #include "level.h"
 
 void Character::draw() {
-	renderer.drawVoxelModel(model,*this);
+	renderer.drawVoxelModel(*charModels[modelIndex],*this);
 	drawBullets();
 }
 
 void Character::moveBullets(float dt) {
 	for (int i = 0; i < bullets.size(); i++) {
-		bullets[i].x += dt * bulletSpeed * bullets[i].direction.x;
-		bullets[i].y += dt * bulletSpeed * bullets[i].direction.y;
-		bullets[i].z += dt * bulletSpeed * bullets[i].direction.z;
+		bullets[i].pos.x += dt * bulletSpeed * bullets[i].direction.x;
+		bullets[i].pos.y += dt * bulletSpeed * bullets[i].direction.y;
+		bullets[i].pos.z += dt * bulletSpeed * bullets[i].direction.z;
 
 		//check if out of bounds
-		if (bullets[i].x >= game.currentLevel->levelSize / 2 || bullets[i].x <= -game.currentLevel->levelSize / 2
-			|| bullets[i].y >= game.currentLevel->levelSize / 2 || bullets[i].y <= -game.currentLevel->levelSize / 2
-			|| bullets[i].z >= game.currentLevel->levelSize / 2 || bullets[i].z <= -game.currentLevel->levelSize / 2) {
+		if (bullets[i].pos.x >= game.currentLevel->levelSize / 2 || bullets[i].pos.x <= -game.currentLevel->levelSize / 2
+			|| bullets[i].pos.y >= game.currentLevel->levelSize / 2 || bullets[i].pos.y <= -game.currentLevel->levelSize / 2
+			|| bullets[i].pos.z >= game.currentLevel->levelSize / 2 || bullets[i].pos.z <= -game.currentLevel->levelSize / 2) {
 			bullets.erase(bullets.begin() + i);
 			i--;
 		}
 	}
+
+	//check if bullets collide with level
+	game.currentLevel->checkBulletsCollisions(*this);
 }
 
 void Character::drawBullets() {
 	if (bullets.empty()) return;
 	renderer.drawBullets(*this);
+	for (int i = 0; i < bullets.size(); i++) {
+		renderer.drawTrail(bullets[i].trail);
+	}
 }

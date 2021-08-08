@@ -7,13 +7,14 @@ class VoxelModel;
 class VoxelRenderer;
 class AudioPlayer;
 
+/*object representing the player character*/
 class Player: public Character {
 public:
-	void updateState();
-	static void loadModels(VoxelRenderer* renderer);
+	void updateState(float dt);
+	static void loadModels();
 
 	//constructors
-	Player(VoxelModel& model, Game& game, VoxelRenderer& renderer);
+	Player(Game& game, VoxelRenderer& renderer);
 
 	//input
 	void fire();

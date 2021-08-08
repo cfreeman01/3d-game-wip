@@ -2,6 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
+#include <iostream>
 #include "VoxelRenderer.h"
 #include "VoxelModel.h"
 #include "resource_manager.h"
@@ -10,6 +11,7 @@
 #include "texture.h"
 #include "game.h"
 #include "camera.h"
+#include "trailGenerator.h"
 
 float voxelVertices[] = {
     //vertices              //normals
@@ -82,7 +84,9 @@ void VoxelRenderer::initRenderData() {
     glBindVertexArray(0);
 }
 
-//draw a voxel that is part of a model
+/*draw a VoxelModel that is tied to a specific GameObject.
+the GameObject holds the dynamic game data (like world position) while
+the VoxelModel object holds the constant data obtained from a .VOX file*/
 void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel, GameObject& object) {
     shader.Use();
     glBindVertexArray(VAO);
@@ -97,7 +101,7 @@ void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel, GameObject& object) {
     model1 = glm::scale(model1, glm::vec3(modelScale));
     model1 = glm::translate(model1, glm::vec3(0.5, 0.5, 0.5));
 
-    model2 = glm::translate(model2, object.pos);
+    model2 = glm::translate(model2, object.pos + glm::vec3(0, object.distanceOffGround, 0));
     model2 = glm::translate(model2, glm::vec3(voxelModel.size.x * 0.5 * modelScale, voxelModel.size.y * 0.5 * modelScale, voxelModel.size.z * 0.5 * modelScale));
     model2 = glm::rotate(model2, glm::radians(object.rotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
     model2 = glm::rotate(model2, glm::radians(object.rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -133,7 +137,7 @@ void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel, GameObject& object) {
     glBindVertexArray(0);
 }
 
-//draw a set of bullets for a character
+/*draw a set of bullets for a character*/
 void VoxelRenderer::drawBullets(Character& character) {
     shader.Use();
     glBindVertexArray(VAO);
@@ -167,9 +171,55 @@ void VoxelRenderer::drawBullets(Character& character) {
 
     //color
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(bullet), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(bullet), (void*)(sizeof(GameObject)));
     glVertexAttribDivisor(3, 1);
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, 36, character.bullets.size());
+    glBindVertexArray(0);
+}
+
+void VoxelRenderer::drawTrail(TrailGenerator& trail) {
+    if (game.Keys[GLFW_KEY_Q]) {
+        int x = 2;
+    }
+
+    ResourceManager::GetShader("TrailShader").Use();
+    glBindVertexArray(VAO);
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 projection = glm::mat4(1.0f);
+    glm::mat4 view = glm::mat4(1.0f);
+
+    model = glm::scale(model, glm::vec3(trail.bulletScale));
+    model = glm::translate(model, glm::vec3(0.5, 0.5, 0.5));
+
+    view = game.mainCamera->GetViewMatrix();
+    projection = game.mainCamera->GetProjectionMatrix();
+
+    ResourceManager::GetShader("TrailShader").SetMatrix4("model", model);
+    ResourceManager::GetShader("TrailShader").SetMatrix4("view", view);
+    ResourceManager::GetShader("TrailShader").SetMatrix4("projection", projection);
+
+    //pass in instanced data
+    unsigned int instanceVBO;
+    glGenBuffers(1, &instanceVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * trail.particles.size(), &trail.particles[0], GL_STATIC_DRAW);
+
+    //particle position
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)0);
+    glVertexAttribDivisor(2, 1);
+
+    //color
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)(3 * sizeof(float)));
+    glVertexAttribDivisor(3, 1);
+
+    //alpha value (particle's "life")
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)(6 * sizeof(float)));
+    glVertexAttribDivisor(4, 1);
+
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, trail.particles.size());
     glBindVertexArray(0);
 }

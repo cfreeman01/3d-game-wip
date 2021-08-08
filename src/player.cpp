@@ -13,17 +13,40 @@
 AudioPlayer Player::shootAudio;
 AudioPlayer Player::movementAudio;
 
-Player::Player(VoxelModel& model, Game& game, VoxelRenderer& renderer) : Character(model, game, renderer) {
-	size = model.size;
-}
+std::vector<glm::vec3> bulletColors = {
+	glm::vec3(1.0f, 0.2f, 0.6f),
+	glm::vec3(0.4f, 0.8f, 1.0f),
+	glm::vec3(1.0f, 1.0f, 0.4f)
+};
 
-void Player::updateState() {
-
-}
-
-void Player::loadModels(VoxelRenderer* renderer) {
+void Player::loadModels() {
 	VoxelLoader::loadModel("models/player_0.vox", "player_0");
-	VoxelLoader::loadModel("models/player_0.vox", "player_1");
+	VoxelLoader::loadModel("models/player_1.vox", "player_1");
+}
+
+Player::Player(Game& game, VoxelRenderer& renderer) : Character(game, renderer) {
+	speed = 10.0f;
+    bulletSpeed = 18.0f;
+	bulletScale = 0.5f;
+	modelUpdateDelay = 0.5f;
+
+	//models must be loaded first!
+	charModels.push_back(&VoxelLoader::getModel("player_0"));
+	charModels.push_back(&VoxelLoader::getModel("player_1"));
+	size = charModels[0]->size;
+}
+
+void Player::updateState(float dt) {
+	//update model
+	if (game.elapsedTime - lastModelUpdate >= modelUpdateDelay) {
+		lastModelUpdate = game.elapsedTime;
+		modelIndex = (modelIndex + 1) % charModels.size();
+	}
+
+	//update bullet trails
+	for (int i = 0; i < bullets.size(); i++) {
+		bullets[i].trail.update(dt);
+	}
 }
 
 void Player::processInput(float dt) {
@@ -108,6 +131,7 @@ void Player::rotatePlayer(float dt) {
 	glm::mat4 modelMat = glm::mat4(1.0f);
 	glm::mat4 projection = game.mainCamera->GetProjectionMatrix();
 	glm::mat4 view = game.mainCamera->GetViewMatrix();
+	VoxelModel& model = *charModels[modelIndex];
 
 	//obtain midPos, the point at the middle of the player model
 	modelMat = glm::translate(modelMat, pos);
@@ -137,6 +161,8 @@ void Player::rotatePlayer(float dt) {
 
 void Player::fire() {
 	shootAudio.play("audio/gunshot.mp3");
+	VoxelModel& model = *charModels[modelIndex];
+
 	glm::mat4 modelMat = glm::mat4(1.0f);
 	modelMat = glm::rotate(modelMat, glm::radians(rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::vec3 direction = glm::normalize(modelMat * glm::vec4(-1.0f, 0.0f, 0.0f, 1.0f)); //direction the player is facing
@@ -146,5 +172,6 @@ void Player::fire() {
 	glm::vec3 midPos = glm::vec3(0.5f * scale * model.size.x, 0.5f * scale * model.size.y, 0.5f * scale * model.size.z);
 	midPos = modelMat * glm::vec4(midPos, 1.0f);  //middle point of the player model
 
-	bullets.push_back(bullet(midPos, direction, glm::vec3(1.0f, 0.4f, 0.0f), rotate.y));
+	glm::vec3 bulletColor = bulletColors[rand() % bulletColors.size()];
+	bullets.emplace_back(midPos, direction, bulletColor, rotate.y, bulletScale);
 }

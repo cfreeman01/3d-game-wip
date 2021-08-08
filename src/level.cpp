@@ -10,6 +10,7 @@
 
 Island::Island(VoxelModel& model) : model(model) {
 	Voxels = std::vector<GameObject>(model.numVoxels);
+	size = model.size;
 }
 
 void Island::updateVoxels() {
@@ -79,6 +80,21 @@ glm::vec3 Level::checkPlayerCollision(Player& player) {
 	}
 
 	return displacement;
+}
+
+void Level::checkBulletsCollisions(Character& character) {
+	for (int i = 0; i < islands.size(); i++) {
+		islands[i].updateVoxels();
+		for (int j = 0; j < islands[i].Voxels.size(); j++) {
+			GameObject currentVoxel = islands[i].Voxels[j];
+			for (int k = 0; k < character.bullets.size(); k++) {
+				if (checkCollisionAABB(character.bullets[k], currentVoxel) != glm::vec3(0,0,0)) {
+					character.bullets.erase(character.bullets.begin() + k);
+					k--;
+				}
+			}
+		}
+	}
 }
 //------------------
 

@@ -46,6 +46,7 @@ void Game::Init()
     //load shaders
     Shader& voxShader = ResourceManager::LoadShader("shaders/Voxel.vert", "shaders/Voxel.frag", nullptr, "VoxelShader");
     Shader& spriteShader = ResourceManager::LoadShader("shaders/Sprite.vert", "shaders/Sprite.frag", nullptr, "SpriteShader");
+    ResourceManager::LoadShader("shaders/Trail.vert", "shaders/Trail.frag", nullptr, "TrailShader");
     //create voxel renderer
     vRenderer = new VoxelRenderer(voxShader, *this);
     //create sprite renderer
@@ -56,10 +57,10 @@ void Game::Init()
     //load level
     currentLevel = new Level(*vRenderer, *this);
     //load models
-    Player::loadModels(vRenderer);
+    Player::loadModels();
     VoxelLoader::loadModel("models/enemy1.vox", "enemy1");
     //load player object
-    player = new Player(VoxelLoader::getModel("player_0"), *this, *vRenderer);
+    player = new Player(*this, *vRenderer);
     player->pos = glm::vec3(-8.0f, -2.0f, -1.5f);
     player->scale = 0.1;
 }
@@ -71,6 +72,7 @@ void Game::Update(float dt)
     mainCamera->rotate(dt);
 
     player->moveBullets(dt);
+    player->updateState(dt);
 
     if (displayFrames && elapsedTime - lastDisplayTime > 1.0f) {
         lastDisplayTime = elapsedTime;
@@ -119,8 +121,8 @@ void Game::ProcessInput(float dt)
 
 void Game::Render(float dt)
 {
-    player->draw();
     currentLevel->drawIslands();
+    player->draw();
     //draw cursor
     sRenderer->DrawSprite(ResourceManager::GetTexture("cursor"), glm::vec2(mouseX, mouseY));
 }
