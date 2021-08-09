@@ -14,17 +14,18 @@ void Character::draw() {
 }
 
 void Character::moveBullets(float dt) {
-	for (int i = 0; i < bullets.size(); i++) {
-		bullets[i].pos.x += dt * bulletSpeed * bullets[i].direction.x;
-		bullets[i].pos.y += dt * bulletSpeed * bullets[i].direction.y;
-		bullets[i].pos.z += dt * bulletSpeed * bullets[i].direction.z;
+	for (auto itr = bullets.begin(); itr != bullets.end(); itr++) {
+		itr->pos.x += dt * bulletSpeed * itr->direction.x;
+		itr->pos.y += dt * bulletSpeed * itr->direction.y;
+		itr->pos.z += dt * bulletSpeed * itr->direction.z;
 
 		//check if out of bounds
-		if (bullets[i].pos.x >= game.currentLevel->levelSize / 2 || bullets[i].pos.x <= -game.currentLevel->levelSize / 2
-			|| bullets[i].pos.y >= game.currentLevel->levelSize / 2 || bullets[i].pos.y <= -game.currentLevel->levelSize / 2
-			|| bullets[i].pos.z >= game.currentLevel->levelSize / 2 || bullets[i].pos.z <= -game.currentLevel->levelSize / 2) {
-			bullets.erase(bullets.begin() + i);
-			i--;
+		if (itr->pos.x >= game.currentLevel->levelSize / 2 || itr->pos.x <= -game.currentLevel->levelSize / 2
+			|| itr->pos.y >= game.currentLevel->levelSize / 2 || itr->pos.y <= -game.currentLevel->levelSize / 2
+			|| itr->pos.z >= game.currentLevel->levelSize / 2 || itr->pos.z <= -game.currentLevel->levelSize / 2) {
+			itr = bullets.erase(itr);
+			if (itr == bullets.begin()) break;
+			itr--;
 		}
 	}
 
@@ -35,7 +36,5 @@ void Character::moveBullets(float dt) {
 void Character::drawBullets() {
 	if (bullets.empty()) return;
 	renderer.drawBullets(*this);
-	for (int i = 0; i < bullets.size(); i++) {
-		renderer.drawTrail(bullets[i].trail);
-	}
+	renderer.drawTrails(*this);
 }

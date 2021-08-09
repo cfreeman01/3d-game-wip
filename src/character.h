@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
+#include <list>
 
 #include "gameObject.h"
 #include "trailGenerator.h"
@@ -21,7 +22,7 @@ struct bullet: public GameObject {
 		this->pos = pos;
 		this->rotate.y = rotation;
 		this->scale = scale;
-		trail = TrailGenerator(*this, color);
+		trail = TrailGenerator(this, color);
 	}
 };
 
@@ -49,7 +50,7 @@ public:
 	void drawBullets();
 
 	//bullets
-	std::vector<bullet> bullets;
+	std::list<bullet> bullets;
 	virtual void fire() = 0;
 	void moveBullets(float dt);
 	float lastFireTime = 0.0f;

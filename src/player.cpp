@@ -44,8 +44,8 @@ void Player::updateState(float dt) {
 	}
 
 	//update bullet trails
-	for (int i = 0; i < bullets.size(); i++) {
-		bullets[i].trail.update(dt);
+	for (auto itr = bullets.begin(); itr != bullets.end(); itr++) {
+		itr->trail.update(dt);
 	}
 }
 

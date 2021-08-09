@@ -28,10 +28,8 @@ public:
 	std::vector<Particle> particles;
 	float updateTimer = 0.0f;
 	float updateDelay = 0.05f;
-	float bulletScale;
 
 	TrailGenerator() {}
-	TrailGenerator(GameObject& object, glm::vec3 color);
+	TrailGenerator(GameObject* object, glm::vec3 color);
 	void update(float dt);
-	int firstUnusedIndex();
 };

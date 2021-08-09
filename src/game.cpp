@@ -121,7 +121,7 @@ void Game::ProcessInput(float dt)
 
 void Game::Render(float dt)
 {
-    currentLevel->drawIslands();
+    currentLevel->draw();
     player->draw();
     //draw cursor
     sRenderer->DrawSprite(ResourceManager::GetTexture("cursor"), glm::vec2(mouseX, mouseY));

@@ -19,7 +19,7 @@ public:
 	void initRenderData();
 	void drawVoxelModel(VoxelModel& model, GameObject& object);    //draw a voxel model
 	void drawBullets(Character& character);    //draw a set of bullets for a character
-	void drawTrail(TrailGenerator& trail);
+	void drawTrails(Character& character);
 
 	VoxelRenderer(Shader& shader, Game& game);
 };

@@ -158,11 +158,17 @@ void VoxelRenderer::drawBullets(Character& character) {
     shader.SetMatrix4("projection", projection);
     shader.SetFloat("modelScale", 1.0f);
 
+    //make a contiguous data structure for the bullets
+    std::vector<bullet> bulletsVec;
+    for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
+        bulletsVec.push_back(*itr);
+    }
+
     //pass in instanced data
     unsigned int instanceVBO;
     glGenBuffers(1, &instanceVBO);
     glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(bullet) * character.bullets.size(), &character.bullets[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(bullet) * bulletsVec.size(), &bulletsVec[0], GL_STATIC_DRAW);
 
     //bullet position
     glEnableVertexAttribArray(2);
@@ -178,18 +184,15 @@ void VoxelRenderer::drawBullets(Character& character) {
     glBindVertexArray(0);
 }
 
-void VoxelRenderer::drawTrail(TrailGenerator& trail) {
-    if (game.Keys[GLFW_KEY_Q]) {
-        int x = 2;
-    }
-
+/*draw the particle trails for a character's bullets*/
+void VoxelRenderer::drawTrails(Character& character) {
     ResourceManager::GetShader("TrailShader").Use();
     glBindVertexArray(VAO);
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 projection = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
 
-    model = glm::scale(model, glm::vec3(trail.bulletScale));
+    model = glm::scale(model, glm::vec3(character.bulletScale));
     model = glm::translate(model, glm::vec3(0.5, 0.5, 0.5));
 
     view = game.mainCamera->GetViewMatrix();
@@ -199,11 +202,17 @@ void VoxelRenderer::drawTrail(TrailGenerator& trail) {
     ResourceManager::GetShader("TrailShader").SetMatrix4("view", view);
     ResourceManager::GetShader("TrailShader").SetMatrix4("projection", projection);
 
+    //combine all bullet trails in a single vector
+    std::vector<Particle> trails;
+    for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
+        trails.insert(trails.end(), itr->trail.particles.begin(), itr->trail.particles.end());
+    }
+
     //pass in instanced data
     unsigned int instanceVBO;
     glGenBuffers(1, &instanceVBO);
     glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * trail.particles.size(), &trail.particles[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Particle) * trails.size(), &trails[0], GL_STATIC_DRAW);
 
     //particle position
     glEnableVertexAttribArray(2);
@@ -220,6 +229,6 @@ void VoxelRenderer::drawTrail(TrailGenerator& trail) {
     glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)(6 * sizeof(float)));
     glVertexAttribDivisor(4, 1);
 
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, trail.particles.size());
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, trails.size());
     glBindVertexArray(0);
 }

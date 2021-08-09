@@ -9,6 +9,7 @@ class Game;
 class VoxelModel;
 class Player;
 class Character;
+class Skybox;
 
 class Island : public GameObject {
 	/*holds position data for an island and a reference to the model data*/
@@ -23,6 +24,7 @@ class Level {
 private:
 	VoxelRenderer&           renderer;
 	Game&                    game;
+	Skybox*                  skybox;
 	std::vector<Island>      islands;
 public:
 	const float levelSize = 100.0f;  //side length of the cube that makes up the play area
@@ -37,5 +39,5 @@ public:
 	void checkBulletsCollisions(Character& character);
 
 	Level(VoxelRenderer& renderer, Game& game);
-	void drawIslands();
+	void draw();
 };

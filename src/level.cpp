@@ -7,6 +7,7 @@
 #include "VoxelRenderer.h"
 #include "gameObject.h"
 #include "shader.h"
+#include "skybox.h"
 
 Island::Island(VoxelModel& model) : model(model) {
 	Voxels = std::vector<GameObject>(model.numVoxels);
@@ -22,13 +23,31 @@ void Island::updateVoxels() {
 }
 
 Level::Level(VoxelRenderer& renderer, Game& game) : renderer(renderer), game(game) {
+	//initialize islands
 	islands.push_back(Island(VoxelLoader::loadModel("models/first_island.vox", "first_island")));
 	islands[0].pos = glm::vec3(-(float)islands[0].model.size.x / 2, -(float)islands[0].model.size.y / 2, -(float)islands[0].model.size.z / 2);
+
+	//initialize lighting
 	renderer.shader.SetVector3f("lightPos", lightPos);
 	renderer.shader.SetVector3f("lightColor", lightColor);
+
+	//initialize skybox
+	std::vector<std::string> skyboxTextures = {
+			"textures/skybox_right.bmp",
+			"textures/skybox_left.bmp",
+			"textures/skybox_top.bmp",
+			"textures/skybox_bottom.bmp",
+			"textures/skybox_front.bmp",
+			"textures/skybox_back.bmp"
+	};
+	skybox = new Skybox(game, skyboxTextures, levelSize);
 }
 
-void Level::drawIslands() {
+void Level::draw() {
+	//draw skybox
+	skybox->draw();
+
+	//draw islands
 	for (int i = 0; i < islands.size(); i++) {
 		renderer.drawVoxelModel(islands[i].model, islands[i]);
 	}
@@ -83,19 +102,34 @@ glm::vec3 Level::checkPlayerCollision(Player& player) {
 }
 
 void Level::checkBulletsCollisions(Character& character) {
-	for (int i = 0; i < islands.size(); i++) {
-		islands[i].updateVoxels();
-		for (int j = 0; j < islands[i].Voxels.size(); j++) {
-			GameObject currentVoxel = islands[i].Voxels[j];
-			for (int k = 0; k < character.bullets.size(); k++) {
-				if (checkCollisionAABB(character.bullets[k], currentVoxel) != glm::vec3(0,0,0)) {
-					character.bullets.erase(character.bullets.begin() + k);
-					k--;
+	for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
+		for (int i = 0; i < islands.size(); i++) {
+			islands[i].updateVoxels();
+			for (int j = 0; j < islands[i].Voxels.size(); j++) {
+				GameObject currentVoxel = islands[i].Voxels[j];
+				if (checkCollisionAABB(*itr, currentVoxel) != glm::vec3(0, 0, 0)) {
+					itr = character.bullets.erase(itr);
+					if (itr == character.bullets.begin()) return;
+					itr--;
 				}
+
 			}
 		}
 	}
 }
+	/*for (int i = 0; i < islands.size(); i++) {
+		islands[i].updateVoxels();
+		for (int j = 0; j < islands[i].Voxels.size(); j++) {
+			GameObject currentVoxel = islands[i].Voxels[j];
+			for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
+				if (checkCollisionAABB(*itr, currentVoxel) != glm::vec3(0,0,0)) {
+					itr = character.bullets.erase(itr);
+					if (itr == character.bullets.begin()) break;
+					itr--;
+				}
+			}
+		}
+	}*/
 //------------------
 
 
