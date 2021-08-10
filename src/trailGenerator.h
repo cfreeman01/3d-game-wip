@@ -28,8 +28,9 @@ public:
 	std::vector<Particle> particles;
 	float updateTimer = 0.0f;
 	float updateDelay = 0.05f;
+	int numParticles;
 
 	TrailGenerator() {}
-	TrailGenerator(GameObject* object, glm::vec3 color);
+	TrailGenerator(GameObject* object, glm::vec3 color, int numParticles);
 	void update(float dt);
 };

@@ -69,6 +69,9 @@ public:
     //rotate camera by 90 degrees if user presses q or e
     void rotate(float dt);
 
+    //move camera vertically
+    void moveVertical(float dy);
+
 private:
     // calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors();

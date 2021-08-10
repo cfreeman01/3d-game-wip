@@ -16,6 +16,8 @@
 #include "player.h"
 #include "audioPlayer.h"
 #include "camera.h"
+#include "enemy.h"
+#include "enemy1.h"
 
 using namespace std;
 
@@ -23,6 +25,8 @@ AudioPlayer Game::gameAudio;
 
 bool displayFrames = true;
 float lastDisplayTime = 0.0f;
+
+Enemy1* testEnemy = nullptr;
 
 Game::Game(unsigned int width, unsigned int height)
     : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
@@ -58,11 +62,13 @@ void Game::Init()
     currentLevel = new Level(*vRenderer, *this);
     //load models
     Player::loadModels();
-    VoxelLoader::loadModel("models/enemy1.vox", "enemy1");
+    Enemy1::loadModels();
     //load player object
     player = new Player(*this, *vRenderer);
     player->pos = glm::vec3(-8.0f, -2.0f, -1.5f);
     player->scale = 0.1;
+
+    testEnemy = new Enemy1(*this, *vRenderer);
 }
 
 void Game::Update(float dt)
@@ -71,8 +77,9 @@ void Game::Update(float dt)
 
     mainCamera->rotate(dt);
 
-    player->moveBullets(dt);
     player->updateState(dt);
+
+    testEnemy->updateState(dt);
 
     if (displayFrames && elapsedTime - lastDisplayTime > 1.0f) {
         lastDisplayTime = elapsedTime;
@@ -123,6 +130,7 @@ void Game::Render(float dt)
 {
     currentLevel->draw();
     player->draw();
+    testEnemy->draw();
     //draw cursor
     sRenderer->DrawSprite(ResourceManager::GetTexture("cursor"), glm::vec2(mouseX, mouseY));
 }

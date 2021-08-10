@@ -1,7 +1,7 @@
 #include "trailGenerator.h"
 #include "gameObject.h"
 
-TrailGenerator::TrailGenerator(GameObject* object, glm::vec3 color): object(object), color(color) {
+TrailGenerator::TrailGenerator(GameObject* object, glm::vec3 color, int numParticles): object(object), color(color), numParticles(numParticles) {
 	particles.push_back(Particle(object->pos, color));
 }
 
@@ -12,7 +12,7 @@ void TrailGenerator::update(float dt) {
 
 	//decrease life of particles and remove dead particles
 	for (int i = 0; i < particles.size(); i++) {
-		particles[i].life -= 0.1f;
+		particles[i].life -= 1.0f/numParticles;
 		if (particles[i].life <= 0.0f) {
 			particles.erase(particles.begin() + i);
 			i--;
@@ -20,7 +20,7 @@ void TrailGenerator::update(float dt) {
 	}
 
 	//iff number of particles is less than numParticles, add a new particle
-	if (particles.size() < 10) {
+	if (particles.size() < numParticles) {
 		particles.emplace_back(object->pos, color);
 	}
 }

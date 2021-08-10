@@ -18,15 +18,15 @@ struct bullet: public GameObject {
 	glm::vec3 direction;  //direction of movement
 	TrailGenerator trail;
 
-	bullet(glm::vec3 pos, glm::vec3 direction, glm::vec3 color, float rotation, float scale): color(color), direction(direction) {
+	bullet(glm::vec3 pos, glm::vec3 direction, glm::vec3 color, float rotation, float scale, float numParticles): color(color), direction(direction) {
 		this->pos = pos;
 		this->rotate.y = rotation;
 		this->scale = scale;
-		trail = TrailGenerator(this, color);
+		trail = TrailGenerator(this, color, numParticles);
 	}
 };
 
-/*base class for the player and all enemies*/
+/*base class for player and enemies*/
 class Character: public GameObject{
 public:
 	Game& game;

@@ -115,3 +115,8 @@ void Camera::rotate(float dt) {
     }
     updateCameraVectors();
 }
+
+void Camera::moveVertical(float dy) {
+    Position.y += dy;
+    updateCameraVectors();
+}

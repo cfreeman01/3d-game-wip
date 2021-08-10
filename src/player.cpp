@@ -43,6 +43,8 @@ void Player::updateState(float dt) {
 		modelIndex = (modelIndex + 1) % charModels.size();
 	}
 
+	moveBullets(dt);
+
 	//update bullet trails
 	for (auto itr = bullets.begin(); itr != bullets.end(); itr++) {
 		itr->trail.update(dt);
@@ -113,6 +115,7 @@ void Player::moveVertical(float dt) {
 
 	if (!grounded) {
 		pos.y += speed * dt * verticalVelocity; //move player vertically and then test for a collision
+		game.mainCamera->moveVertical(speed * dt * verticalVelocity);  //move camera along with player
 		verticalVelocity -= dt;
 		glm::vec3 displacement = game.currentLevel->checkPlayerCollision(*this);
 		pos.y += displacement.y;
@@ -173,5 +176,5 @@ void Player::fire() {
 	midPos = modelMat * glm::vec4(midPos, 1.0f);  //middle point of the player model
 
 	glm::vec3 bulletColor = bulletColors[rand() % bulletColors.size()];
-	bullets.emplace_back(midPos, direction, bulletColor, rotate.y, bulletScale);
+	bullets.emplace_back(midPos, direction, bulletColor, rotate.y, bulletScale, 10);
 }

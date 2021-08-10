@@ -33,12 +33,12 @@ Level::Level(VoxelRenderer& renderer, Game& game) : renderer(renderer), game(gam
 
 	//initialize skybox
 	std::vector<std::string> skyboxTextures = {
-			"textures/skybox_right.bmp",
-			"textures/skybox_left.bmp",
-			"textures/skybox_top.bmp",
-			"textures/skybox_bottom.bmp",
-			"textures/skybox_front.bmp",
-			"textures/skybox_back.bmp"
+			"textures/skybox_right.png",
+			"textures/skybox_left.png",
+			"textures/skybox_top.png",
+			"textures/skybox_bottom.png",
+			"textures/skybox_front.png",
+			"textures/skybox_back.png"
 	};
 	skybox = new Skybox(game, skyboxTextures, levelSize);
 }
@@ -117,19 +117,3 @@ void Level::checkBulletsCollisions(Character& character) {
 		}
 	}
 }
-	/*for (int i = 0; i < islands.size(); i++) {
-		islands[i].updateVoxels();
-		for (int j = 0; j < islands[i].Voxels.size(); j++) {
-			GameObject currentVoxel = islands[i].Voxels[j];
-			for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
-				if (checkCollisionAABB(*itr, currentVoxel) != glm::vec3(0,0,0)) {
-					itr = character.bullets.erase(itr);
-					if (itr == character.bullets.begin()) break;
-					itr--;
-				}
-			}
-		}
-	}*/
-//------------------
-
-
