@@ -67,7 +67,7 @@ void Camera::ProcessMouseMovement(float xpos, float ypos, GLboolean constrainPit
 // processes input received from a mouse scroll-wheel event
 void Camera::ProcessMouseScroll(float yoffset)
 {
-    if (glm::length(Position) >= 75.0f && yoffset <= 0.0f) return;
+    if (glm::length(Position) >= 100.0f && yoffset <= 0.0f) return;
     if (glm::length(Position) <= 25.0f && yoffset >= 0.0f) return;
     Position *= (-yoffset * 0.05f + 1.0f);
 }

@@ -20,6 +20,7 @@ public:
 	void fire();
 	
 	//movement/collisions
+	void takeDamage();
 	void processInput(float dt);
 	void movePlayer(float dt);
 	void moveVertical(float dt);
@@ -30,4 +31,5 @@ public:
 	//audio
 	static AudioPlayer shootAudio;
 	static AudioPlayer movementAudio;
+	static AudioPlayer damageAudio;
 };

@@ -19,7 +19,7 @@ void TrailGenerator::update(float dt) {
 		}
 	}
 
-	//iff number of particles is less than numParticles, add a new particle
+	//if number of particles is less than numParticles, add a new particle
 	if (particles.size() < numParticles) {
 		particles.emplace_back(object->pos, color);
 	}

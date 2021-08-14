@@ -3,9 +3,9 @@
 //FORWARD DECLARATIONS
 class AudioPlayer;
 
-class Enemy1 : public Enemy {
+class Enemy2 : public Enemy {
 public:
-	Enemy1(Game& game, VoxelRenderer& renderer);
+	Enemy2(Game& game, VoxelRenderer& renderer);
 
 	static void loadModels();
 

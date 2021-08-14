@@ -3,6 +3,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <ctime>
 
 #include "game.h"
 #include "resource_manager.h"
@@ -28,6 +29,7 @@ Game game(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 int main()
 {
+    srand(time(0));
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

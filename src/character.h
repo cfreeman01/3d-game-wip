@@ -8,6 +8,13 @@
 #include "gameObject.h"
 #include "trailGenerator.h"
 
+
+enum CharState { //character state
+	ALIVE,
+	DYING,
+	DEAD
+};
+
 //FORWARD DECLARATIONS
 class Game;
 class VoxelModel;
@@ -33,10 +40,12 @@ public:
 	virtual void updateState(float dt) = 0;
 
 	//models and animation
-	std::vector<VoxelModel*> charModels;  //Voxel models that the character cycles through
+	std::vector<VoxelModel*> charModels;  //models for regular animation
+	std::vector<VoxelModel*> deathModels; //models for death animation
 	int modelIndex = 0;                   //index into charModels
 	float lastModelUpdate = 0.0f;
 	float modelUpdateDelay; 
+	void nextModel();
 
 	//movement speed
 	float speed;
@@ -57,4 +66,11 @@ public:
 	float fireCooldown = 0.5f;
 	float bulletSpeed;
 	float bulletScale;
+
+	//damage/hp
+	CharState cState = ALIVE;
+	int hp = 3;
+	virtual void takeDamage() = 0;
+	float lastDamaged = 0.0f;  //time at which character last took damage
+	float tintDuration = 0.4f; //how long model should be red after taking damage
 };

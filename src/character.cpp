@@ -9,7 +9,10 @@
 #include "level.h"
 
 void Character::draw() {
-	renderer.drawVoxelModel(*charModels[modelIndex],*this);
+	if(cState == ALIVE)
+		renderer.drawVoxelModel(*charModels[modelIndex],*this);
+	else if(cState == DYING)
+		renderer.drawVoxelModel(*deathModels[modelIndex], *this);
 	drawBullets();
 }
 
@@ -28,9 +31,24 @@ void Character::moveBullets(float dt) {
 			itr--;
 		}
 	}
+}
 
-	//check if bullets collide with level
-	game.currentLevel->checkBulletsCollisions(*this);
+void Character::nextModel() { //animate the character by switching the voxel model
+	lastModelUpdate = game.elapsedTime;
+
+	if (cState == ALIVE) {
+		modelIndex = (modelIndex + 1) % charModels.size();
+		size = charModels[modelIndex]->size;
+	}
+
+	if (cState == DYING) {
+		if (modelIndex == deathModels.size() - 1) {
+			cState = DEAD;
+			return;
+		}
+		modelIndex = (modelIndex + 1) % deathModels.size();
+		size = deathModels[modelIndex]->size;		
+	}
 }
 
 void Character::drawBullets() {

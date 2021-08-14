@@ -18,6 +18,7 @@
 #include "camera.h"
 #include "enemy.h"
 #include "enemy1.h"
+#include "enemy2.h"
 
 using namespace std;
 
@@ -25,8 +26,6 @@ AudioPlayer Game::gameAudio;
 
 bool displayFrames = true;
 float lastDisplayTime = 0.0f;
-
-Enemy1* testEnemy = nullptr;
 
 Game::Game(unsigned int width, unsigned int height)
     : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
@@ -45,8 +44,14 @@ Game::~Game()
 
 void Game::Init()
 {
+    //load models
+    Player::loadModels();
+    Enemy1::loadModels();
+    Enemy2::loadModels();
+    Level::loadModels();
     //load textures
     ResourceManager::LoadTexture("textures/cursor.png", true, "cursor");
+    ResourceManager::LoadTexture("textures/gameOver.png", true, "GameOver");
     //load shaders
     Shader& voxShader = ResourceManager::LoadShader("shaders/Voxel.vert", "shaders/Voxel.frag", nullptr, "VoxelShader");
     Shader& spriteShader = ResourceManager::LoadShader("shaders/Sprite.vert", "shaders/Sprite.frag", nullptr, "SpriteShader");
@@ -56,30 +61,34 @@ void Game::Init()
     //create sprite renderer
     sRenderer = new SpriteRenderer(spriteShader, *this);
     //create camera
-    mainCamera = new Camera(glm::vec3(-38.3f, 21.8f, -21.7f), glm::vec3(0.0f, 1.0f, 0.0f), 29.0f, -28.6f);
+    mainCamera = new Camera(1.5f * glm::vec3(-38.3f, 21.8f, -21.7f), glm::vec3(0.0f, 1.0f, 0.0f), 29.0f, -28.6f);
     voxShader.SetMatrix4("projection", mainCamera->GetProjectionMatrix());
     //load level
     currentLevel = new Level(*vRenderer, *this);
-    //load models
-    Player::loadModels();
-    Enemy1::loadModels();
     //load player object
     player = new Player(*this, *vRenderer);
     player->pos = glm::vec3(-8.0f, -2.0f, -1.5f);
     player->scale = 0.1;
-
-    testEnemy = new Enemy1(*this, *vRenderer);
 }
 
 void Game::Update(float dt)
 {
+    if (State == GAME_OVER) return;
+
+    if (player->cState == DEAD) {
+        State = GAME_OVER;
+        gameAudio.play("audio/game_over.mp3");
+        return;
+    }
+
     elapsedTime += dt;
 
     mainCamera->rotate(dt);
 
     player->updateState(dt);
 
-    testEnemy->updateState(dt);
+    currentLevel->updateEnemies(dt);
+    currentLevel->updateDifficulty(dt);
 
     if (displayFrames && elapsedTime - lastDisplayTime > 1.0f) {
         lastDisplayTime = elapsedTime;
@@ -89,6 +98,15 @@ void Game::Update(float dt)
 
 void Game::ProcessInput(float dt)
 {
+    if (State == GAME_OVER) {
+        if (mouse1) {  //on game over, player presses mouse1 to restart game
+            restart();
+            State = GAME_ACTIVE;
+            gameAudio.play("audio/restart.mp3");
+        }
+        return;
+    }
+
     if (Keys[GLFW_KEY_1] && elapsedTime - lastCameraModeSwitch >= 0.5f) {
         mainCamera->freeMode = !mainCamera->freeMode;
         lastCameraModeSwitch = elapsedTime;
@@ -108,8 +126,9 @@ void Game::ProcessInput(float dt)
         //process mouse input
         mainCamera->ProcessMouseMovement(mouseX, mouseY);
     }
+
     else {
-        //possibly rotate camera
+        //rotate camera
         if (Keys[GLFW_KEY_Q] && mainCamera->rotating == 0) {
             mainCamera->rotating = -1;
             gameAudio.play("audio/swoosh_1.mp3");
@@ -118,11 +137,13 @@ void Game::ProcessInput(float dt)
             mainCamera->rotating = 1;
             gameAudio.play("audio/swoosh_2.mp3");
         }
+        //zoom camera
         mainCamera->ProcessMouseScroll(mouseWheelOffset);
         mouseWheelOffset = 0.0f;
 
         //Process player input
-        player->processInput(dt);
+        if(player->cState == ALIVE)
+            player->processInput(dt);
     }
 }
 
@@ -130,7 +151,23 @@ void Game::Render(float dt)
 {
     currentLevel->draw();
     player->draw();
-    testEnemy->draw();
+
     //draw cursor
     sRenderer->DrawSprite(ResourceManager::GetTexture("cursor"), glm::vec2(mouseX, mouseY));
+
+    //draw a game over message
+    if (State == GAME_OVER) {
+        float gameOverSize = 400.0f;
+        sRenderer->DrawSprite(ResourceManager::GetTexture("GameOver"), glm::vec2(Width / 2 - gameOverSize / 2, Height / 2 - gameOverSize / 2),
+            glm::vec2(gameOverSize, gameOverSize));
+    }
+}
+
+void Game::restart() {
+    delete currentLevel;
+    delete player;
+    currentLevel = new Level(*vRenderer, *this);
+    player = new Player(*this, *vRenderer);
+    player->pos = glm::vec3(-8.0f, -2.0f, -1.5f);
+    player->scale = 0.1;
 }

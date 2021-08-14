@@ -1,4 +1,5 @@
 #include "level.h"
+#include "game.h"
 #include "player.h"
 #include "character.h"
 #include "VoxelRenderer.h"
@@ -8,10 +9,18 @@
 #include "gameObject.h"
 #include "shader.h"
 #include "skybox.h"
+#include "enemy.h"
+#include "enemy1.h"
+#include "enemy2.h"
+#include <iostream>
 
 Island::Island(VoxelModel& model) : model(model) {
 	Voxels = std::vector<GameObject>(model.numVoxels);
 	size = model.size;
+}
+
+void Level::loadModels() {
+	VoxelLoader::loadModel("models/islands/first_island.vox", "first_island");
 }
 
 void Island::updateVoxels() {
@@ -24,7 +33,7 @@ void Island::updateVoxels() {
 
 Level::Level(VoxelRenderer& renderer, Game& game) : renderer(renderer), game(game) {
 	//initialize islands
-	islands.push_back(Island(VoxelLoader::loadModel("models/first_island.vox", "first_island")));
+	islands.push_back(Island(VoxelLoader::getModel("first_island")));
 	islands[0].pos = glm::vec3(-(float)islands[0].model.size.x / 2, -(float)islands[0].model.size.y / 2, -(float)islands[0].model.size.z / 2);
 
 	//initialize lighting
@@ -43,6 +52,12 @@ Level::Level(VoxelRenderer& renderer, Game& game) : renderer(renderer), game(gam
 	skybox = new Skybox(game, skyboxTextures, levelSize);
 }
 
+Level::~Level() {
+	delete skybox;
+	for (int i = 0; i < enemies.size(); i++)
+		delete enemies[i];
+}
+
 void Level::draw() {
 	//draw skybox
 	skybox->draw();
@@ -50,6 +65,46 @@ void Level::draw() {
 	//draw islands
 	for (int i = 0; i < islands.size(); i++) {
 		renderer.drawVoxelModel(islands[i].model, islands[i]);
+	}
+
+	//draw enemies
+	for (int i = 0; i < enemies.size(); i++) {
+		enemies[i]->draw();
+	}
+}
+
+void Level::updateEnemies(float dt) {
+	enemySpawnTimer += dt;
+
+	//update or remove existing enemies
+	for (int i = 0; i < enemies.size(); i++) {
+		if (enemies[i]->cState == DEAD) {
+			delete enemies[i];
+			enemies.erase(enemies.begin() + i);
+			enemySpawnTimer -= 2.0f;  //turn back spawn timer as reward for killing an enemy
+			i--;
+		}
+		else
+			enemies[i]->updateState(dt);
+	}
+
+	//possibly spawn new enemy
+	if (enemySpawnTimer >= enemySpawnDelay && enemies.size() < 5) {
+		enemySpawnTimer = 0.0f;
+		int enemyType = (rand() % enemyLevel) + 1;
+		if (enemyType == 1) {
+			enemies.push_back(new Enemy1(game, renderer));
+		}
+		if (enemyType == 2) {
+			enemies.push_back(new Enemy2(game, renderer));
+		}
+	}
+}
+
+void Level::updateDifficulty(float dt) {
+	if (game.elapsedTime - lastDifficultyUpdate >= 30.0f) {
+		lastDifficultyUpdate = game.elapsedTime;
+		if (enemyLevel < 2) enemyLevel++;
 	}
 }
 
@@ -84,7 +139,8 @@ glm::vec3 Level::checkCollisionAABB(GameObject& one, GameObject& two) {
 	else return glm::vec3(0.0f, 0.0f, 0.0f);
 }
 
-glm::vec3 Level::checkPlayerCollision(Player& player) {
+//check if player collides with level
+glm::vec3 Level::checkPlayerLevelCollision(Player& player) {
 	glm::vec3 displacement = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	for (int i = 0; i < islands.size(); i++) {
@@ -101,7 +157,8 @@ glm::vec3 Level::checkPlayerCollision(Player& player) {
 	return displacement;
 }
 
-void Level::checkBulletsCollisions(Character& character) {
+//check if character's bullets collide with the level
+void Level::checkBulletLevelCollisions(Character& character) {
 	for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
 		for (int i = 0; i < islands.size(); i++) {
 			islands[i].updateVoxels();
@@ -112,7 +169,39 @@ void Level::checkBulletsCollisions(Character& character) {
 					if (itr == character.bullets.begin()) return;
 					itr--;
 				}
+			}
+		}
+	}
+}
 
+//check if player's bullets collide with enemies
+void Level::checkBulletEnemyCollisions(Player& player) {
+	for (auto itr = player.bullets.begin(); itr != player.bullets.end(); itr++) {
+		for (int i = 0; i < enemies.size(); i++) {
+			if (game.Keys[GLFW_KEY_R]) {
+				int x = 2;
+			}
+			if (enemies[i]->cState == ALIVE) {
+				if (checkCollisionAABB(*itr, *enemies[i]) != glm::vec3(0, 0, 0)) {
+					enemies[i]->takeDamage();
+					itr = player.bullets.erase(itr);
+					if (itr == player.bullets.begin()) return;
+					itr--;
+					break;
+				}
+			}
+		}
+	}
+}
+
+//check if enemy's bullets collide with player
+void Level::checkPlayerBulletCollision(Player& player) {
+	for (int i = 0; i < enemies.size(); i++) {
+		for (auto b = enemies[i]->bullets.begin(); b != enemies[i]->bullets.end(); b++) {
+			if (checkCollisionAABB(player, *b) != glm::vec3(0, 0, 0)) {
+				enemies[i]->bullets.erase(b);
+				player.takeDamage();
+				return;
 			}
 		}
 	}

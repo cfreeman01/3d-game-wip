@@ -116,6 +116,7 @@ void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel, GameObject& object) {
     shader.SetMatrix4("view", view);
     shader.SetMatrix4("projection", projection);
     shader.SetFloat("modelScale", modelScale);
+    shader.SetVector3f("tintColor", object.tintColor);
 
     //pass in instanced data
     unsigned int instanceVBO;
@@ -157,6 +158,7 @@ void VoxelRenderer::drawBullets(Character& character) {
     shader.SetMatrix4("view", view);
     shader.SetMatrix4("projection", projection);
     shader.SetFloat("modelScale", 1.0f);
+    shader.SetVector3f("tintColor", glm::vec3(1.0f,1.0f,1.0f));
 
     //make a contiguous data structure for the bullets
     std::vector<bullet> bulletsVec;

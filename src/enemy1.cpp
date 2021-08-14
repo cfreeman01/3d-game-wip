@@ -7,19 +7,24 @@
 #include "audioPlayer.h"
 
 AudioPlayer Enemy1::shootAudio;
-AudioPlayer Enemy1::damageAudio;
 
 void Enemy1::loadModels() {
-	VoxelLoader::loadModel("models/enemy1_0.vox", "enemy1_0");
-	VoxelLoader::loadModel("models/enemy1_1.vox", "enemy1_1");
+	VoxelLoader::loadModel("models/enemy1/0.vox", "enemy1_0");
+	VoxelLoader::loadModel("models/enemy1/1.vox", "enemy1_1");
+
+	VoxelLoader::loadModel("models/enemy1/death0.vox", "enemy1_death0");
+	VoxelLoader::loadModel("models/enemy1/death1.vox", "enemy1_death1");
+	VoxelLoader::loadModel("models/enemy1/death2.vox", "enemy1_death2");
+	VoxelLoader::loadModel("models/enemy1/death3.vox", "enemy1_death3");
+	VoxelLoader::loadModel("models/enemy1/death4.vox", "enemy1_death4");
 }
 
 Enemy1::Enemy1(Game& game, VoxelRenderer& renderer) : Enemy(game, renderer) {
 	//set properties
-	speed = 5.0f;
-	bulletSpeed = 18.0f;
+	speed = 6.0f;
+	bulletSpeed = 20.0f;
 	bulletScale = 0.5f;
-	fireCooldown = 1.0f;
+	fireCooldown = 2.0f;
 	modelUpdateDelay = 0.5f;
 	scale = 0.125f;
 
@@ -27,16 +32,22 @@ Enemy1::Enemy1(Game& game, VoxelRenderer& renderer) : Enemy(game, renderer) {
 	charModels.push_back(&VoxelLoader::getModel("enemy1_0"));
 	charModels.push_back(&VoxelLoader::getModel("enemy1_1"));
 
+	deathModels.push_back(&VoxelLoader::getModel("enemy1_death0"));
+	deathModels.push_back(&VoxelLoader::getModel("enemy1_death1"));
+	deathModels.push_back(&VoxelLoader::getModel("enemy1_death2"));
+	deathModels.push_back(&VoxelLoader::getModel("enemy1_death3"));
+	deathModels.push_back(&VoxelLoader::getModel("enemy1_death4"));
+
 	//initial position
 	pos.y = game.player->pos.y;
-	if (rand() % 1 > 0.5f)
-		pos.x = game.currentLevel->levelSize / 2;
+	if (rand() % 100 > 50)
+		pos.x = game.currentLevel->levelSize / 2.5;
 	else
-		pos.x = -(game.currentLevel->levelSize / 2);
-	if (rand() % 1 > 0.5f)
-		pos.z = game.currentLevel->levelSize / 2;
+		pos.x = -(game.currentLevel->levelSize / 2.5);
+	if (rand() % 100 > 50)
+		pos.z = game.currentLevel->levelSize / 2.5;
 	else
-		pos.z = -(game.currentLevel->levelSize / 2);
+		pos.z = -(game.currentLevel->levelSize / 2.5);
 }
 
 void Enemy1::move(float dt) {
@@ -59,13 +70,18 @@ void Enemy1::move(float dt) {
 
 void Enemy1::fire() {
 	shootAudio.play("audio/enemy1_gunshot.mp3");
-	VoxelModel& model = *charModels[modelIndex];
+	VoxelModel* model;
+	if(cState == ALIVE)
+		model = charModels[modelIndex];
+	else
+		model = deathModels[modelIndex];
+
 	glm::vec3 diff = game.player->pos - this->pos;
 
 	//get middle point of enemy model
 	glm::mat4 modelMat = glm::mat4(1.0f);
 	modelMat = glm::translate(modelMat, pos);
-	glm::vec3 midPos = glm::vec3(0.5f * scale * model.size.x, 0.5f * scale * model.size.y, 0.5f * scale * model.size.z);
+	glm::vec3 midPos = glm::vec3(0.5f * scale * model->size.x, 0.5f * scale * model->size.y, 0.5f * scale * model->size.z);
 	midPos = modelMat * glm::vec4(midPos, 1.0f);  //middle point of the player model
 
 	bullets.emplace_back(midPos, glm::normalize(diff), glm::vec3(1.0f, 0.6f, 0.2f), rotate.y, bulletScale, 3);
