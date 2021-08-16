@@ -12,15 +12,22 @@
 #include "enemy.h"
 #include "enemy1.h"
 #include "enemy2.h"
+#include "enemy3.h"
 #include <iostream>
+#include <cmath>
 
-Island::Island(VoxelModel& model) : model(model) {
+Island::Island(VoxelModel& model, glm::vec3 pos) : model(model) {
 	Voxels = std::vector<GameObject>(model.numVoxels);
 	size = model.size;
+	this->pos = pos;
 }
 
 void Level::loadModels() {
-	VoxelLoader::loadModel("models/islands/first_island.vox", "first_island");
+	for (int i = 0; i <= numIslands; i++) {
+		std::string filename = "models/islands/" + std::to_string(i) + ".vox";
+		std::string islandName = "island_" + std::to_string(i);
+		VoxelLoader::loadModel(filename.c_str(), islandName.c_str());
+	}
 }
 
 void Island::updateVoxels() {
@@ -33,12 +40,13 @@ void Island::updateVoxels() {
 
 Level::Level(VoxelRenderer& renderer, Game& game) : renderer(renderer), game(game) {
 	//initialize islands
-	islands.push_back(Island(VoxelLoader::getModel("first_island")));
-	islands[0].pos = glm::vec3(-(float)islands[0].model.size.x / 2, -(float)islands[0].model.size.y / 2, -(float)islands[0].model.size.z / 2);
+	VoxelModel& island_0 = VoxelLoader::getModel("island_0");
+	islands.push_back(Island(VoxelLoader::getModel("island_0"), 
+		glm::vec3(-island_0.size.x / 2, -island_0.size.y / 2, -island_0.size.z / 2)));
 
 	//initialize lighting
-	renderer.shader.SetVector3f("lightPos", lightPos);
-	renderer.shader.SetVector3f("lightColor", lightColor);
+	renderer.shader.SetVector3f("lightPos", lightPos, true);
+	renderer.shader.SetVector3f("lightColor", lightColor, true);
 
 	//initialize skybox
 	std::vector<std::string> skyboxTextures = {
@@ -63,13 +71,34 @@ void Level::draw() {
 	skybox->draw();
 
 	//draw islands
-	for (int i = 0; i < islands.size(); i++) {
-		renderer.drawVoxelModel(islands[i].model, islands[i]);
+	for (auto itr = islands.begin(); itr != islands.end(); itr++) {
+		renderer.drawVoxelModel(itr->model, *itr);
 	}
 
 	//draw enemies
 	for (int i = 0; i < enemies.size(); i++) {
 		enemies[i]->draw();
+	}
+}
+
+void Level::updateState(float dt) {
+	updateEnemies(dt);
+	updateDifficulty(dt);
+
+	//move islands
+	for (auto itr = islands.begin(); itr != islands.end(); itr++) {
+		itr->pos.z -= islandSpeed * dt;
+	}
+
+	//possibly add new island
+	Island frontIsland = *(--islands.end());
+	float frontPos = frontIsland.pos.z + (frontIsland.size.z * frontIsland.scale);
+	if (frontPos <= levelSize) addIsland();
+
+	//possibly delete old island
+	float backPos = islands.begin()->pos.z;
+	if (backPos <= -(levelSize)) {
+		islands.pop_front();
 	}
 }
 
@@ -98,14 +127,60 @@ void Level::updateEnemies(float dt) {
 		if (enemyType == 2) {
 			enemies.push_back(new Enemy2(game, renderer));
 		}
+		if (enemyType == 3) {
+			enemies.push_back(new Enemy3(game, renderer));
+		}
 	}
 }
 
 void Level::updateDifficulty(float dt) {
 	if (game.elapsedTime - lastDifficultyUpdate >= 30.0f) {
 		lastDifficultyUpdate = game.elapsedTime;
-		if (enemyLevel < 2) enemyLevel++;
+		if (enemyLevel < 3) enemyLevel++;
 	}
+}
+
+void Level::addIsland() {
+	int newIslandNum = (rand() % numIslands) + 1;
+	std::string newIslandName = "island_" + std::to_string(newIslandNum);
+
+	Island frontIsland = *(--islands.end());
+
+	glm::vec3 midPos = frontIsland.pos;  //get front island's middle point (along the x-axis)
+	midPos.x += ((frontIsland.size.x * frontIsland.scale) / 2);
+
+	glm::vec3 newPos = midPos;
+	newPos.z += frontIsland.size.z * frontIsland.scale;
+
+	islands.push_back(Island(VoxelLoader::getModel(newIslandName), newPos));
+
+	//adjust x-position so that middle of new island aligns with middle of previous island
+	islands.back().pos.x -= (islands.back().size.x * islands.back().scale) / 2;
+}
+
+/*returns a random point on the perimeter of the level where enemies can spawn*/
+glm::vec3 Level::getRandPerimeterPoint() {
+	glm::vec3 result = glm::vec3(0,0,0);
+	int side = rand() % 4;
+
+	if (side == 0) {
+		result.z = -(levelSize / 2);
+		result.x = fmod(rand(), levelSize) - (levelSize / 2);
+	}
+	else if (side == 1) {
+		result.z = levelSize / 2;
+		result.x = fmod(rand(), levelSize) - (levelSize / 2);
+	}
+	else if (side == 2) {
+		result.x = -(levelSize / 2);
+		result.z = fmod(rand(), levelSize) - (levelSize / 2);
+	}
+	else if (side == 3) {
+		result.x = levelSize / 2;
+		result.z = fmod(rand(), levelSize) - (levelSize / 2);
+	}
+
+	return result;
 }
 
 //COLLISIONS--------
@@ -143,53 +218,43 @@ glm::vec3 Level::checkCollisionAABB(GameObject& one, GameObject& two) {
 glm::vec3 Level::checkPlayerLevelCollision(Player& player) {
 	glm::vec3 displacement = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	for (int i = 0; i < islands.size(); i++) {
-		islands[i].updateVoxels();
-		for (int j = 0; j < islands[i].Voxels.size(); j++) {
-			displacement = checkCollisionAABB(player, islands[i].Voxels[j]);
-			if (displacement != glm::vec3(0.0f, 0.0f, 0.0f)) {
-				break;
-			}
+	//find island that player is currently on
+	Island* currentIsland = nullptr;
+	for (auto island = islands.begin(); island != islands.end(); island++) {
+		if (checkCollisionAABB(player, *island) != glm::vec3(0, 0, 0)) {
+			currentIsland = &(*island);
+			break;
 		}
-		if (displacement != glm::vec3(0.0f, 0.0f, 0.0f)) break;
+	}
+	if (currentIsland == nullptr) return glm::vec3(0, 0, 0);
+
+	currentIsland->updateVoxels();
+
+	for (int j = 0; j < currentIsland->Voxels.size(); j++) {
+		displacement = checkCollisionAABB(player, currentIsland->Voxels[j]);
+		if (displacement != glm::vec3(0.0f, 0.0f, 0.0f)) {
+			break;
+		}
 	}
 
 	return displacement;
 }
 
-//check if character's bullets collide with the level
-void Level::checkBulletLevelCollisions(Character& character) {
-	for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
-		for (int i = 0; i < islands.size(); i++) {
-			islands[i].updateVoxels();
-			for (int j = 0; j < islands[i].Voxels.size(); j++) {
-				GameObject currentVoxel = islands[i].Voxels[j];
-				if (checkCollisionAABB(*itr, currentVoxel) != glm::vec3(0, 0, 0)) {
-					itr = character.bullets.erase(itr);
-					if (itr == character.bullets.begin()) return;
-					itr--;
-				}
-			}
-		}
-	}
-}
-
 //check if player's bullets collide with enemies
 void Level::checkBulletEnemyCollisions(Player& player) {
-	for (auto itr = player.bullets.begin(); itr != player.bullets.end(); itr++) {
+	for (auto bullet = player.bullets.begin(); bullet != player.bullets.end(); bullet++) {
 		for (int i = 0; i < enemies.size(); i++) {
-			if (game.Keys[GLFW_KEY_R]) {
-				int x = 2;
-			}
+
 			if (enemies[i]->cState == ALIVE) {
-				if (checkCollisionAABB(*itr, *enemies[i]) != glm::vec3(0, 0, 0)) {
+				if (checkCollisionAABB(*bullet, *enemies[i]) != glm::vec3(0, 0, 0)) {
 					enemies[i]->takeDamage();
-					itr = player.bullets.erase(itr);
-					if (itr == player.bullets.begin()) return;
-					itr--;
+					bullet = player.bullets.erase(bullet);
+					if (bullet == player.bullets.begin()) return;
+					bullet--;
 					break;
 				}
 			}
+
 		}
 	}
 }
@@ -197,9 +262,9 @@ void Level::checkBulletEnemyCollisions(Player& player) {
 //check if enemy's bullets collide with player
 void Level::checkPlayerBulletCollision(Player& player) {
 	for (int i = 0; i < enemies.size(); i++) {
-		for (auto b = enemies[i]->bullets.begin(); b != enemies[i]->bullets.end(); b++) {
-			if (checkCollisionAABB(player, *b) != glm::vec3(0, 0, 0)) {
-				enemies[i]->bullets.erase(b);
+		for (auto bullet = enemies[i]->bullets.begin(); bullet != enemies[i]->bullets.end(); bullet++) {
+			if (checkCollisionAABB(player, *bullet) != glm::vec3(0, 0, 0)) {
+				enemies[i]->bullets.erase(bullet);
 				player.takeDamage();
 				return;
 			}

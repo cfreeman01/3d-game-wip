@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <list>
 #include <glm/glm.hpp>
 #include "gameObject.h"
 
@@ -18,7 +19,7 @@ public:
 	VoxelModel& model;
 	std::vector<GameObject> Voxels;  //holds voxel position data for collision detection
 	void updateVoxels();
-	Island(VoxelModel& model);
+	Island(VoxelModel& model, glm::vec3 pos);
 };
 
 /*contains data relating to enivronment and enemies, and methods for collision detection*/
@@ -27,12 +28,15 @@ private:
 	VoxelRenderer&           renderer;
 	Game&                    game;
 	Skybox*                  skybox;
-	std::vector<Island>      islands;
+	std::list<Island>        islands;
 	std::vector<Enemy*>      enemies;
 public:
+	void updateState(float dt);
+
 	//consts
 	const float levelSize       = 100.0f;  //side length of the cube that makes up the play area
 	const float enemySpawnDelay = 4.0f;    //time between enemy spawns
+	static const int numIslands = 3;       //total amount of unique islands that can possibly spawn (excluding first island)
 
 	//lighting
 	glm::vec3 lightPos = glm::vec3(42.0f, 17.0f, -35.0f);
@@ -51,11 +55,18 @@ public:
 	static glm::vec3 checkCollisionAABB(GameObject& one, GameObject& two);
 	glm::vec3 checkPlayerLevelCollision(Player& player);
 	void checkPlayerBulletCollision(Player& player);
-	void checkBulletLevelCollisions(Character& character);
 	void checkBulletEnemyCollisions(Player& player);
+
+	//islands
+	float islandSpeed = 3.0f;
+	void addIsland();
+	static void loadModels(); //load all models for the level's islands
+
+
+	void draw();     //draw all islands and enemies
+
+	glm::vec3 getRandPerimeterPoint(); //get a random point along the perimeter of the level
 
 	Level(VoxelRenderer& renderer, Game& game);
 	~Level();
-	static void loadModels();
-	void draw();
 };

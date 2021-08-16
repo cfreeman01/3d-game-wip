@@ -33,8 +33,9 @@ public:
         //set encoding format as mp3
         decoderConfig.encodingFormat = ma_encoding_format_mp3;
         //initialize the device and check for errors
-        if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS) {
-            std::cout << "failed to initialize audio player";
+        ma_result m;
+        if (m = ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS) {
+            std::cout << ma_result_description(m);
             ma_decoder_uninit(&decoder);
             return;
         }

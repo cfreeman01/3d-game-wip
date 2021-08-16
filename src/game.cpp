@@ -19,6 +19,7 @@
 #include "enemy.h"
 #include "enemy1.h"
 #include "enemy2.h"
+#include "enemy3.h"
 
 using namespace std;
 
@@ -48,6 +49,7 @@ void Game::Init()
     Player::loadModels();
     Enemy1::loadModels();
     Enemy2::loadModels();
+    Enemy3::loadModels();
     Level::loadModels();
     //load textures
     ResourceManager::LoadTexture("textures/cursor.png", true, "cursor");
@@ -75,20 +77,19 @@ void Game::Update(float dt)
 {
     if (State == GAME_OVER) return;
 
-    if (player->cState == DEAD) {
-        State = GAME_OVER;
-        gameAudio.play("audio/game_over.mp3");
-        return;
-    }
-
     elapsedTime += dt;
 
     mainCamera->rotate(dt);
 
     player->updateState(dt);
 
-    currentLevel->updateEnemies(dt);
-    currentLevel->updateDifficulty(dt);
+    currentLevel->updateState(dt);
+
+    if (player->cState == DEAD) {
+        State = GAME_OVER;
+        gameAudio.play("audio/game_over.mp3");
+        return;
+    }
 
     if (displayFrames && elapsedTime - lastDisplayTime > 1.0f) {
         lastDisplayTime = elapsedTime;
@@ -145,11 +146,16 @@ void Game::ProcessInput(float dt)
         if(player->cState == ALIVE)
             player->processInput(dt);
     }
+
+    if (Keys[GLFW_KEY_ESCAPE]) {
+        exit(0);
+    }
 }
 
 void Game::Render(float dt)
 {
     currentLevel->draw();
+
     player->draw();
 
     //draw cursor
@@ -164,9 +170,16 @@ void Game::Render(float dt)
 }
 
 void Game::restart() {
+    //reset level
     delete currentLevel;
-    delete player;
     currentLevel = new Level(*vRenderer, *this);
+
+    //reset timing
+    elapsedTime = 0.0f;
+    lastDisplayTime = 0.0f;
+
+    //reset player
+    delete player;
     player = new Player(*this, *vRenderer);
     player->pos = glm::vec3(-8.0f, -2.0f, -1.5f);
     player->scale = 0.1;

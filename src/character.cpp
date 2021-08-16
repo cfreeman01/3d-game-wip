@@ -7,12 +7,18 @@
 #include "VoxelModel.h"
 #include "VoxelRenderer.h"
 #include "level.h"
+#include <iostream>
+
+float bulletTime = 0.0f;
+float playerTime = 0.0f;
+float lastTime = 0.0f;
 
 void Character::draw() {
-	if(cState == ALIVE)
-		renderer.drawVoxelModel(*charModels[modelIndex],*this);
-	else if(cState == DYING)
+	if (cState == ALIVE)
+		renderer.drawVoxelModel(*charModels[modelIndex], *this);
+	else if (cState == DYING)
 		renderer.drawVoxelModel(*deathModels[modelIndex], *this);
+
 	drawBullets();
 }
 
@@ -23,9 +29,9 @@ void Character::moveBullets(float dt) {
 		itr->pos.z += dt * bulletSpeed * itr->direction.z;
 
 		//check if out of bounds
-		if (itr->pos.x >= game.currentLevel->levelSize / 2 || itr->pos.x <= -game.currentLevel->levelSize / 2
-			|| itr->pos.y >= game.currentLevel->levelSize / 2 || itr->pos.y <= -game.currentLevel->levelSize / 2
-			|| itr->pos.z >= game.currentLevel->levelSize / 2 || itr->pos.z <= -game.currentLevel->levelSize / 2) {
+		if (itr->pos.x >= game.currentLevel->levelSize || itr->pos.x <= -game.currentLevel->levelSize
+			|| itr->pos.y >= game.currentLevel->levelSize || itr->pos.y <= -game.currentLevel->levelSize
+			|| itr->pos.z >= game.currentLevel->levelSize || itr->pos.z <= -game.currentLevel->levelSize) {
 			itr = bullets.erase(itr);
 			if (itr == bullets.begin()) break;
 			itr--;

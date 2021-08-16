@@ -39,21 +39,14 @@ Enemy1::Enemy1(Game& game, VoxelRenderer& renderer) : Enemy(game, renderer) {
 	deathModels.push_back(&VoxelLoader::getModel("enemy1_death4"));
 
 	//initial position
+	pos = game.currentLevel->getRandPerimeterPoint() * 0.8f;
 	pos.y = game.player->pos.y;
-	if (rand() % 100 > 50)
-		pos.x = game.currentLevel->levelSize / 2.5;
-	else
-		pos.x = -(game.currentLevel->levelSize / 2.5);
-	if (rand() % 100 > 50)
-		pos.z = game.currentLevel->levelSize / 2.5;
-	else
-		pos.z = -(game.currentLevel->levelSize / 2.5);
 }
 
 void Enemy1::move(float dt) {
 	//move toward player
 	glm::vec3 diff =game.player->pos - this->pos;
-	pos.y += speed * dt * glm::normalize(diff).y;
+	pos.y += 2 * speed * dt * glm::normalize(diff).y;
 	if (glm::sqrt((diff.x * diff.x) + (diff.z * diff.z)) > 16.0f) {
 		pos.x += speed * dt * glm::normalize(diff).x;
 		pos.z += speed * dt * glm::normalize(diff).z;

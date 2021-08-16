@@ -58,7 +58,6 @@ void Player::updateState(float dt) {
 	moveBullets(dt);
 
 	//check collisions
-	game.currentLevel->checkBulletLevelCollisions(*this);
 	game.currentLevel->checkPlayerBulletCollision(*this);
 	game.currentLevel->checkBulletEnemyCollisions(*this);
 
@@ -124,13 +123,18 @@ void Player::movePlayer(float dt) {
 	//now move the player along x and z axis check for collisions
 	glm::vec3 displacement = glm::vec3(0.0f, 0.0f, 0.0f);
 
+	pos.z += movement.z;
+	displacement = game.currentLevel->checkPlayerLevelCollision(*this);
+	pos.z += displacement.z;
+
 	pos.x += movement.x;
 	displacement = game.currentLevel->checkPlayerLevelCollision(*this);
 	pos.x += displacement.x;
 
-	pos.z += movement.z;
-	displacement = game.currentLevel->checkPlayerLevelCollision(*this);
-	pos.z += displacement.z;
+	//additionally, move player along with level if he is grounded
+	if (grounded) {
+		pos.z -= game.currentLevel->islandSpeed * dt;
+	}
 }
 
 void Player::moveVertical(float dt) {

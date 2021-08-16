@@ -135,6 +135,8 @@ void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel, GameObject& object) {
     glVertexAttribDivisor(3, 1);
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, 36, voxelModel.numVoxels);
+
+    glDeleteBuffers(1, &instanceVBO);
     glBindVertexArray(0);
 }
 
@@ -183,6 +185,8 @@ void VoxelRenderer::drawBullets(Character& character) {
     glVertexAttribDivisor(3, 1);
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, 36, character.bullets.size());
+
+    glDeleteBuffers(1, &instanceVBO);
     glBindVertexArray(0);
 }
 
@@ -232,5 +236,7 @@ void VoxelRenderer::drawTrails(Character& character) {
     glVertexAttribDivisor(4, 1);
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, 36, trails.size());
+
+    glDeleteBuffers(1, &instanceVBO);
     glBindVertexArray(0);
 }
