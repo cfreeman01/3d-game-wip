@@ -126,6 +126,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         if (action == GLFW_PRESS) game.mouse1 = true;
         else if (action == GLFW_RELEASE) game.mouse1 = false;
     }
+
+    if (button == GLFW_MOUSE_BUTTON_2) {
+        if (action == GLFW_PRESS) game.mouse2 = true;
+        else if (action == GLFW_RELEASE) game.mouse2 = false;
+    }
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

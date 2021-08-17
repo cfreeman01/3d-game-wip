@@ -74,13 +74,24 @@ void Player::updateState(float dt) {
 void Player::processInput(float dt) {
 	movePlayer(dt);
 	moveVertical(dt);
+	rotatePlayer(dt);
 
+	//mouse1: fire
 	if (game.mouse1 && game.elapsedTime - lastFireTime >= fireCooldown) {
 		lastFireTime = game.elapsedTime;
 		fire();
 	}
 
-	rotatePlayer(dt);
+	//mouse2: dash
+	if (game.mouse2 && game.elapsedTime - lastDashTime >= dashCooldown) {
+		lastDashTime = game.elapsedTime;
+		movementAudio.play("audio/player_dash.mp3");
+		
+		//get direction player is facing, and set the dash direction
+		glm::mat4 modelMat = glm::mat4(1.0f);
+		modelMat = glm::rotate(modelMat, glm::radians(rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		dashDirection = glm::normalize(modelMat * glm::vec4(-1.0f, 0.0f, 0.0f, 1.0f));
+	}
 }
 
 void Player::takeDamage() {
@@ -131,7 +142,15 @@ void Player::movePlayer(float dt) {
 	displacement = game.currentLevel->checkPlayerLevelCollision(*this);
 	pos.x += displacement.x;
 
-	//additionally, move player along with level if he is grounded
+	//if player is dashing, move along dash direction and diminish the dash speed
+	if (dashDirection != glm::vec3(0, 0, 0)) {
+		pos += dashVelocity * dashDirection;
+		dashDirection.x = (dashDirection.x - 2*dt < 0) ? 0 : dashDirection.x - 2*dt;
+		dashDirection.y = (dashDirection.y - 2*dt < 0) ? 0 : dashDirection.y - 2*dt;
+		dashDirection.z = (dashDirection.z - 2*dt < 0) ? 0 : dashDirection.z - 2*dt;
+	}
+
+	//move player along with level if he is grounded
 	if (grounded) {
 		pos.z -= game.currentLevel->islandSpeed * dt;
 	}

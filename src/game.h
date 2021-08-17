@@ -11,6 +11,7 @@ class Player;
 class SpriteRenderer;
 class Camera;
 class AudioPlayer;
+class HUD;
 
 // Represents the current state of the game
 enum GameState {
@@ -31,6 +32,7 @@ public:
     SpriteRenderer*         sRenderer;
     Camera*                 mainCamera;
     Player*                 player;
+    HUD*                    hud;
     //input
     bool                    Keys[1024];
     bool                    mouse1 = false, mouse2 = false;
@@ -39,7 +41,6 @@ public:
     float                   lastCameraModeSwitch = 0.0f;
     //dimensions
     int                     Width, Height;
-    int                     playAreaHeight;
     //timing
     float                   elapsedTime = 0.0f;
     // constructor/destructor

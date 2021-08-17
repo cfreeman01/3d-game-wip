@@ -10,23 +10,24 @@ class AudioPlayer;
 /*object representing the player character*/
 class Player: public Character {
 public:
-	void updateState(float dt);
-	static void loadModels();
-
-	//constructors
 	Player(Game& game, VoxelRenderer& renderer);
 
-	//input
+	static void loadModels();
+	void updateState(float dt);
+	void processInput(float dt);
 	void fire();
 	
-	//movement/collisions
+	//movement
 	void takeDamage();
-	void processInput(float dt);
 	void movePlayer(float dt);
 	void moveVertical(float dt);
 	void rotatePlayer(float dt);
 	bool grounded = false;
-	float verticalVelocity = -0.1f;
+	const float dashCooldown = 5.0f;
+	float lastDashTime       = 0.0f;
+	float dashVelocity       = 0.1f;
+	glm::vec3 dashDirection  = glm::vec3(0.0f);
+	float verticalVelocity   = -0.1f;
 
 	//audio
 	static AudioPlayer shootAudio;

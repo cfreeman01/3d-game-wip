@@ -20,6 +20,7 @@
 #include "enemy1.h"
 #include "enemy2.h"
 #include "enemy3.h"
+#include "hud.h"
 
 using namespace std;
 
@@ -34,8 +35,6 @@ Game::Game(unsigned int width, unsigned int height)
     mouseX = (float)this->Width  / 2;
     mouseY = (float)this->Height / 2;
     mouse1 = mouse2 = false;
-
-    playAreaHeight = Height;
 }
 
 Game::~Game()
@@ -54,6 +53,7 @@ void Game::Init()
     //load textures
     ResourceManager::LoadTexture("textures/cursor.png", true, "cursor");
     ResourceManager::LoadTexture("textures/gameOver.png", true, "GameOver");
+    HUD::loadTextures();
     //load shaders
     Shader& voxShader = ResourceManager::LoadShader("shaders/Voxel.vert", "shaders/Voxel.frag", nullptr, "VoxelShader");
     Shader& spriteShader = ResourceManager::LoadShader("shaders/Sprite.vert", "shaders/Sprite.frag", nullptr, "SpriteShader");
@@ -69,8 +69,10 @@ void Game::Init()
     currentLevel = new Level(*vRenderer, *this);
     //load player object
     player = new Player(*this, *vRenderer);
-    player->pos = glm::vec3(-8.0f, -2.0f, -1.5f);
+    player->pos = glm::vec3(-8.0f, -1.0f, -1.5f);
     player->scale = 0.1;
+    //initialize HUD
+    hud = new HUD(*this, *sRenderer);
 }
 
 void Game::Update(float dt)
@@ -160,6 +162,8 @@ void Game::Render(float dt)
 
     //draw cursor
     sRenderer->DrawSprite(ResourceManager::GetTexture("cursor"), glm::vec2(mouseX, mouseY));
+
+    hud->draw();
 
     //draw a game over message
     if (State == GAME_OVER) {

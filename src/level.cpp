@@ -28,6 +28,8 @@ void Level::loadModels() {
 		std::string islandName = "island_" + std::to_string(i);
 		VoxelLoader::loadModel(filename.c_str(), islandName.c_str());
 	}
+
+	VoxelLoader::loadModel("models/heart.vox", "heart");
 }
 
 void Island::updateVoxels() {
@@ -79,11 +81,16 @@ void Level::draw() {
 	for (int i = 0; i < enemies.size(); i++) {
 		enemies[i]->draw();
 	}
+
+	//draw pickups
+	if (healthPickup != nullptr)
+		renderer.drawVoxelModel(VoxelLoader::getModel("heart"), *healthPickup);
 }
 
 void Level::updateState(float dt) {
 	updateEnemies(dt);
 	updateDifficulty(dt);
+	updatePickups(dt);
 
 	//move islands
 	for (auto itr = islands.begin(); itr != islands.end(); itr++) {
@@ -133,6 +140,31 @@ void Level::updateEnemies(float dt) {
 	}
 }
 
+void Level::updatePickups(float dt) {
+	pickupTimer += dt;
+
+	//possibly spawn new pickup
+	if (pickupTimer >= pickupCooldown) {
+
+		if (rand() % 2 == 0) {
+			//spawn health pickup
+			pickupTimer = 0;
+			glm::vec3 newPos = getRandPerimeterPoint();
+			glm::vec3 newVelocity;
+			if (newPos.x < 0) newVelocity = glm::vec3(1, 0, 0);
+			else newVelocity = glm::vec3(-1, 0, 0);
+			healthPickup = new Pickup(newPos, newVelocity, 5.0f);
+			healthPickup->scale = 0.125f;
+		}
+
+		else pickupTimer -= 5.0f;
+	}
+
+	//move pickups
+	if (healthPickup != nullptr)
+		healthPickup->pos += dt * healthPickup->speed * healthPickup->velocity;
+}
+
 void Level::updateDifficulty(float dt) {
 	if (game.elapsedTime - lastDifficultyUpdate >= 30.0f) {
 		lastDifficultyUpdate = game.elapsedTime;
@@ -161,21 +193,13 @@ void Level::addIsland() {
 /*returns a random point on the perimeter of the level where enemies can spawn*/
 glm::vec3 Level::getRandPerimeterPoint() {
 	glm::vec3 result = glm::vec3(0,0,0);
-	int side = rand() % 4;
+	int side = rand() % 2;
 
 	if (side == 0) {
-		result.z = -(levelSize / 2);
-		result.x = fmod(rand(), levelSize) - (levelSize / 2);
-	}
-	else if (side == 1) {
-		result.z = levelSize / 2;
-		result.x = fmod(rand(), levelSize) - (levelSize / 2);
-	}
-	else if (side == 2) {
 		result.x = -(levelSize / 2);
 		result.z = fmod(rand(), levelSize) - (levelSize / 2);
 	}
-	else if (side == 3) {
+	else if (side == 1) {
 		result.x = levelSize / 2;
 		result.z = fmod(rand(), levelSize) - (levelSize / 2);
 	}
