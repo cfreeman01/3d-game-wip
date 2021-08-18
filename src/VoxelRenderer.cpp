@@ -163,7 +163,7 @@ void VoxelRenderer::drawBullets(Character& character) {
     shader.SetVector3f("tintColor", glm::vec3(1.0f,1.0f,1.0f));
 
     //make a contiguous data structure for the bullets
-    std::vector<bullet> bulletsVec;
+    std::vector<Character::bullet> bulletsVec;
     for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
         bulletsVec.push_back(*itr);
     }
@@ -172,16 +172,16 @@ void VoxelRenderer::drawBullets(Character& character) {
     unsigned int instanceVBO;
     glGenBuffers(1, &instanceVBO);
     glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(bullet) * bulletsVec.size(), &bulletsVec[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Character::bullet) * bulletsVec.size(), &bulletsVec[0], GL_STATIC_DRAW);
 
     //bullet position
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(bullet), (void*)0);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Character::bullet), (void*)0);
     glVertexAttribDivisor(2, 1);
 
     //color
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(bullet), (void*)(sizeof(GameObject)));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Character::bullet), (void*)(sizeof(GameObject)));
     glVertexAttribDivisor(3, 1);
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, 36, character.bullets.size());

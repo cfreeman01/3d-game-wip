@@ -87,7 +87,7 @@ void Game::Update(float dt)
 
     currentLevel->updateState(dt);
 
-    if (player->cState == DEAD) {
+    if (player->getState() == Character::DEAD) {
         State = GAME_OVER;
         gameAudio.play("audio/game_over.mp3");
         return;
@@ -145,7 +145,7 @@ void Game::ProcessInput(float dt)
         mouseWheelOffset = 0.0f;
 
         //Process player input
-        if(player->cState == ALIVE)
+        if(player->getState() == Character::ALIVE)
             player->processInput(dt);
     }
 

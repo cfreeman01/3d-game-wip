@@ -30,10 +30,10 @@ HUD::HUD(Game& game, SpriteRenderer& renderer) : game(game), renderer(renderer) 
 
 void HUD::draw() {
 	Player* player = game.player;
-	std::string hp_str = "hp_" + std::to_string(player->hp);
+	std::string hp_str = "hp_" + std::to_string(player->getHP());
 	Texture2D hp_txt = ResourceManager::GetTexture(hp_str.c_str());
 
-	int dashLevel = (int)(game.elapsedTime - player->lastDashTime);
+	int dashLevel = (int)(game.elapsedTime - player->getLastDashTime());
 	if (dashLevel > 5) dashLevel = 5;
 	std::string dash_str = "dash_" + std::to_string(dashLevel);
 	Texture2D dash_txt = ResourceManager::GetTexture(dash_str.c_str());

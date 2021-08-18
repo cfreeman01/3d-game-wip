@@ -15,22 +15,32 @@ public:
 	static void loadModels();
 	void updateState(float dt);
 	void processInput(float dt);
-	void fire();
-	
-	//movement
 	void takeDamage();
+	void powerUp();
+	float getLastDashTime() { return lastDashTime; }
+	
+private:
+	void fire();
+
+	//movement
 	void movePlayer(float dt);
 	void moveVertical(float dt);
 	void rotatePlayer(float dt);
 	bool grounded = false;
+	float verticalVelocity = -0.1f;
 	const float dashCooldown = 5.0f;
 	float lastDashTime       = 0.0f;
 	float dashVelocity       = 0.1f;
 	glm::vec3 dashDirection  = glm::vec3(0.0f);
-	float verticalVelocity   = -0.1f;
+
+	//powerup
+	bool poweredUp = false;
+	float powerUpDuration = 6.0f;
+	float lastPowerUpTime = 0.0f;
 
 	//audio
 	static AudioPlayer shootAudio;
+	static AudioPlayer dashAudio;
 	static AudioPlayer movementAudio;
 	static AudioPlayer damageAudio;
 };

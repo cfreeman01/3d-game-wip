@@ -4,14 +4,12 @@
 class AudioPlayer;
 
 class Enemy1 : public Enemy {
-public:
-	Enemy1(Game& game, VoxelRenderer& renderer);
-
-	static void loadModels();
-
+private:
 	void fire();
 	void move(float dt);
-
-	//audio
 	static AudioPlayer shootAudio;
+
+public:
+	Enemy1(Game& game, VoxelRenderer& renderer);
+	static void loadModels();
 };

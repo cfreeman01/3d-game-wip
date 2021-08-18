@@ -1,5 +1,6 @@
 #include "level.h"
 #include "game.h"
+#include "audioPlayer.h"
 #include "player.h"
 #include "character.h"
 #include "VoxelRenderer.h"
@@ -17,9 +18,20 @@
 #include <cmath>
 
 Island::Island(VoxelModel& model, glm::vec3 pos) : model(model) {
-	Voxels = std::vector<GameObject>(model.numVoxels);
-	size = model.size;
+	Voxels = std::vector<GameObject>(model.getNumVoxels());
+	size = model.getSize();
 	this->pos = pos;
+}
+
+
+void Island::updateVoxels() {
+	for (int i = 0; i < Voxels.size(); i++) {
+		Voxels[i].rotate = rotate;
+		Voxels[i].scale = scale;
+
+		glm::vec3 localVoxPos = model.getVoxPos(i);
+		Voxels[i].pos = pos + glm::vec3(localVoxPos.x * scale, localVoxPos.y * scale, localVoxPos.z * scale);
+	}
 }
 
 void Level::loadModels() {
@@ -30,25 +42,18 @@ void Level::loadModels() {
 	}
 
 	VoxelLoader::loadModel("models/heart.vox", "heart");
-}
-
-void Island::updateVoxels() {
-	for (int i = 0; i < Voxels.size(); i++) {
-		Voxels[i].rotate = rotate;
-		Voxels[i].scale = scale;
-		Voxels[i].pos = pos + glm::vec3(model.vRenderData[i].x * scale, model.vRenderData[i].y * scale, model.vRenderData[i].z * scale);
-	}
+	VoxelLoader::loadModel("models/star.vox", "star");
 }
 
 Level::Level(VoxelRenderer& renderer, Game& game) : renderer(renderer), game(game) {
 	//initialize islands
 	VoxelModel& island_0 = VoxelLoader::getModel("island_0");
 	islands.push_back(Island(VoxelLoader::getModel("island_0"), 
-		glm::vec3(-island_0.size.x / 2, -island_0.size.y / 2, -island_0.size.z / 2)));
+		glm::vec3(-island_0.getSize().x / 2, -island_0.getSize().y / 2, -island_0.getSize().z / 2)));
 
 	//initialize lighting
-	renderer.shader.SetVector3f("lightPos", lightPos, true);
-	renderer.shader.SetVector3f("lightColor", lightColor, true);
+	renderer.setLightPos(lightPos);
+	renderer.setLightColor(lightColor);
 
 	//initialize skybox
 	std::vector<std::string> skyboxTextures = {
@@ -85,6 +90,8 @@ void Level::draw() {
 	//draw pickups
 	if (healthPickup != nullptr)
 		renderer.drawVoxelModel(VoxelLoader::getModel("heart"), *healthPickup);
+	if (powerup != nullptr)
+		renderer.drawVoxelModel(VoxelLoader::getModel("star"), *powerup);
 }
 
 void Level::updateState(float dt) {
@@ -114,7 +121,7 @@ void Level::updateEnemies(float dt) {
 
 	//update or remove existing enemies
 	for (int i = 0; i < enemies.size(); i++) {
-		if (enemies[i]->cState == DEAD) {
+		if (enemies[i]->getState() == Character::DEAD) {
 			delete enemies[i];
 			enemies.erase(enemies.begin() + i);
 			enemySpawnTimer -= 2.0f;  //turn back spawn timer as reward for killing an enemy
@@ -145,24 +152,50 @@ void Level::updatePickups(float dt) {
 
 	//possibly spawn new pickup
 	if (pickupTimer >= pickupCooldown) {
-
 		if (rand() % 2 == 0) {
-			//spawn health pickup
-			pickupTimer = 0;
-			glm::vec3 newPos = getRandPerimeterPoint();
-			glm::vec3 newVelocity;
-			if (newPos.x < 0) newVelocity = glm::vec3(1, 0, 0);
-			else newVelocity = glm::vec3(-1, 0, 0);
-			healthPickup = new Pickup(newPos, newVelocity, 5.0f);
-			healthPickup->scale = 0.125f;
+			if (rand() % 2 == 0)
+				healthPickup = spawnPickup();
+			else
+				powerup = spawnPickup();
 		}
-
 		else pickupTimer -= 5.0f;
 	}
 
 	//move pickups
-	if (healthPickup != nullptr)
+	if (healthPickup != nullptr) {
 		healthPickup->pos += dt * healthPickup->speed * healthPickup->velocity;
+		healthPickup->rotate.y += (360 * dt);
+	}
+	if (powerup != nullptr) {
+		powerup->pos += dt * powerup->speed * powerup->velocity;
+		powerup->rotate.y += (360 * dt);
+	}
+
+	//check if pickups are out of bounds
+	if (healthPickup != nullptr) {
+		if (outOfBounds(*healthPickup)) {
+			delete healthPickup;
+			healthPickup = nullptr;
+		}
+	}
+	if (powerup != nullptr) {
+		if (outOfBounds(*powerup)) {
+			delete powerup;
+			powerup = nullptr;
+		}
+	}
+}
+
+Pickup* Level::spawnPickup() {
+	pickupTimer = 0;
+	glm::vec3 newPos = getRandPerimeterPoint();
+	newPos.y = game.player->pos.y;
+	glm::vec3 newVelocity;
+	if (newPos.x < 0) newVelocity = glm::vec3(1, 0, 0);
+	else newVelocity = glm::vec3(-1, 0, 0);
+	Pickup* pickup = new Pickup(newPos, newVelocity, pickupSpeed);
+	pickup->scale = 0.125f;
+	return pickup;
 }
 
 void Level::updateDifficulty(float dt) {
@@ -207,9 +240,18 @@ glm::vec3 Level::getRandPerimeterPoint() {
 	return result;
 }
 
+bool Level::outOfBounds(GameObject& obj) {
+	if (obj.pos.x >= levelSize || obj.pos.x <= -levelSize
+		|| obj.pos.y >= levelSize || obj.pos.y <= -levelSize
+		|| obj.pos.z >= levelSize || obj.pos.z <= -levelSize) {
+		return true; //obj is out of bounds
+	}
+	return false;
+}
+
 //COLLISIONS--------
 //detect a collision between two axis-aligned bounding boxes and return the displacement of one if a collision occured
-glm::vec3 Level::checkCollisionAABB(GameObject& one, GameObject& two) {
+glm::vec3 Level::checkCollisionAABB(const GameObject& one, const GameObject& two) {
 	glm::vec3 displacement = glm::vec3(0.0f, 0.0f, 0.0f);
 	//x-axis
 	bool collisionX = one.pos.x + (one.size.x * one.scale) > two.pos.x && two.pos.x + (two.size.x * two.scale) > one.pos.x;
@@ -254,6 +296,7 @@ glm::vec3 Level::checkPlayerLevelCollision(Player& player) {
 
 	currentIsland->updateVoxels();
 
+	//check collision with island
 	for (int j = 0; j < currentIsland->Voxels.size(); j++) {
 		displacement = checkCollisionAABB(player, currentIsland->Voxels[j]);
 		if (displacement != glm::vec3(0.0f, 0.0f, 0.0f)) {
@@ -264,16 +307,37 @@ glm::vec3 Level::checkPlayerLevelCollision(Player& player) {
 	return displacement;
 }
 
+//check if player collides with pickups
+void Level::checkPlayerPickupCollision(Player& player) {
+	if (healthPickup != nullptr) {
+		if (checkCollisionAABB(player, *healthPickup) != glm::vec3(0, 0, 0)) {
+			player.incHP();
+			delete healthPickup;
+			healthPickup = nullptr;
+			game.gameAudio.play("audio/hp_gain.mp3");
+		}
+	}
+
+	if (powerup != nullptr) {
+		if (checkCollisionAABB(player, *powerup) != glm::vec3(0, 0, 0)) {
+			player.powerUp();
+			delete powerup;
+			powerup = nullptr;
+			game.gameAudio.play("audio/powerup.mp3");
+		}
+	}
+}
+
 //check if player's bullets collide with enemies
 void Level::checkBulletEnemyCollisions(Player& player) {
-	for (auto bullet = player.bullets.begin(); bullet != player.bullets.end(); bullet++) {
+	for (auto bullet = player.bulletsBegin(); bullet != player.bulletsEnd(); bullet++) {
 		for (int i = 0; i < enemies.size(); i++) {
 
-			if (enemies[i]->cState == ALIVE) {
+			if (enemies[i]->getState() == Character::ALIVE) {
 				if (checkCollisionAABB(*bullet, *enemies[i]) != glm::vec3(0, 0, 0)) {
 					enemies[i]->takeDamage();
-					bullet = player.bullets.erase(bullet);
-					if (bullet == player.bullets.begin()) return;
+					bullet = player.destroyBullet(bullet);
+					if (bullet == player.bulletsBegin()) return;
 					bullet--;
 					break;
 				}
@@ -286,9 +350,9 @@ void Level::checkBulletEnemyCollisions(Player& player) {
 //check if enemy's bullets collide with player
 void Level::checkPlayerBulletCollision(Player& player) {
 	for (int i = 0; i < enemies.size(); i++) {
-		for (auto bullet = enemies[i]->bullets.begin(); bullet != enemies[i]->bullets.end(); bullet++) {
+		for (auto bullet = enemies[i]->bulletsBegin(); bullet != enemies[i]->bulletsEnd(); bullet++) {
 			if (checkCollisionAABB(player, *bullet) != glm::vec3(0, 0, 0)) {
-				enemies[i]->bullets.erase(bullet);
+				enemies[i]->destroyBullet(bullet);
 				player.takeDamage();
 				return;
 			}

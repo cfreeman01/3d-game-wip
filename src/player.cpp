@@ -11,6 +11,7 @@
 #include "camera.h"
 
 AudioPlayer Player::shootAudio;
+AudioPlayer Player::dashAudio;
 AudioPlayer Player::movementAudio;
 AudioPlayer Player::damageAudio;
 
@@ -60,6 +61,7 @@ void Player::updateState(float dt) {
 	//check collisions
 	game.currentLevel->checkPlayerBulletCollision(*this);
 	game.currentLevel->checkBulletEnemyCollisions(*this);
+	game.currentLevel->checkPlayerPickupCollision(*this);
 
 	//update bullet trails
 	for (auto itr = bullets.begin(); itr != bullets.end(); itr++) {
@@ -67,8 +69,15 @@ void Player::updateState(float dt) {
 	}
 
 	//check if tint needs to be changed
-	if (game.elapsedTime - lastDamaged >= tintDuration)
+	if (!poweredUp && game.elapsedTime - lastDamaged >= tintDuration)
 		tintColor = glm::vec3(1.0f, 1.0f, 1.0f);
+
+	//check if powerup status needs to change
+	if (poweredUp && game.elapsedTime - lastPowerUpTime >= powerUpDuration) {
+		tintColor = glm::vec3(1.0f, 1.0f, 1.0f);
+		poweredUp = false;
+		fireCooldown *= 2;
+	}
 }
 
 void Player::processInput(float dt) {
@@ -85,7 +94,7 @@ void Player::processInput(float dt) {
 	//mouse2: dash
 	if (game.mouse2 && game.elapsedTime - lastDashTime >= dashCooldown) {
 		lastDashTime = game.elapsedTime;
-		movementAudio.play("audio/player_dash.mp3");
+		dashAudio.play("audio/player_dash.mp3");
 		
 		//get direction player is facing, and set the dash direction
 		glm::mat4 modelMat = glm::mat4(1.0f);
@@ -95,18 +104,27 @@ void Player::processInput(float dt) {
 }
 
 void Player::takeDamage() {
-	if (cState != ALIVE) return;
+	if (poweredUp) return;
+	if (state != ALIVE) return;
 	hp--;
 	lastDamaged = game.elapsedTime;
 	tintColor = glm::vec3(1.0f, 0.0f, 0.0f);
 	if (hp == 0) {
 		damageAudio.play("audio/player_death.mp3");
-		cState = DYING;
+		state = DYING;
 		modelUpdateDelay = 0.2f;
 		modelIndex = 0;
 	}
 	else
 		damageAudio.play("audio/player_damage.mp3");
+}
+
+//powerup: makes player invincible and increase fire rate
+void Player::powerUp() {
+	poweredUp = true;
+	tintColor = glm::vec3(1.0f, 0.8f, 0.0f);
+	fireCooldown /= 2;
+	lastPowerUpTime = game.elapsedTime;
 }
 
 void Player::movePlayer(float dt) {
@@ -186,8 +204,8 @@ void Player::moveVertical(float dt) {
 		if (displacement.y < 0) verticalVelocity = 0.0f;  //if displacement is negative, player has hit a ceiling, so set verticalVelocity=0
 	}
 
-	if (pos.y < -((game.currentLevel->levelSize) / 2)) {  //if player has fallen off the level
-		cState = DEAD;
+	if (game.currentLevel->outOfBounds(*this)) {  //if player is out of bounds
+		state = DEAD;
 		game.gameAudio.play("audio/player_death.mp3");
 	}
 }
@@ -200,7 +218,7 @@ void Player::rotatePlayer(float dt) {  //rotate player based on mouse position
 
 	//obtain midPos, the point at the middle of the player model
 	modelMat = glm::translate(modelMat, pos);
-	glm::vec3 midPos = glm::vec3(0.5f * scale * model.size.x, 0.5f * scale * model.size.y, 0.5f * scale * model.size.z);
+	glm::vec3 midPos = glm::vec3(0.5f * scale * model.getSize().x, 0.5f * scale * model.getSize().y, 0.5f * scale * model.getSize().z);
 	midPos = modelMat * glm::vec4(midPos, 1.0f);
 
 	//get intersection of line pointing from the cursor with the plane: y = midPos.y
@@ -227,7 +245,7 @@ void Player::rotatePlayer(float dt) {  //rotate player based on mouse position
 void Player::fire() {
 	shootAudio.play("audio/gunshot.mp3");
 	VoxelModel* model;
-	if (cState == ALIVE)
+	if (state == ALIVE)
 		model = charModels[modelIndex];
 	else
 		model = deathModels[modelIndex];
@@ -238,7 +256,7 @@ void Player::fire() {
 
 	modelMat = glm::mat4(1.0f);
 	modelMat = glm::translate(modelMat, pos);
-	glm::vec3 midPos = glm::vec3(0.5f * scale * model->size.x, 0.5f * scale * model->size.y, 0.5f * scale * model->size.z);
+	glm::vec3 midPos = glm::vec3(0.5f * scale * model->getSize().x, 0.5f * scale * model->getSize().y, 0.5f * scale * model->getSize().z);
 	midPos = modelMat * glm::vec4(midPos, 1.0f);  //middle point of the player model
 
 	glm::vec3 bulletColor = bulletColors[rand() % bulletColors.size()];

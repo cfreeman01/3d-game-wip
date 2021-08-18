@@ -14,9 +14,9 @@ float playerTime = 0.0f;
 float lastTime = 0.0f;
 
 void Character::draw() {
-	if (cState == ALIVE)
+	if (state == ALIVE)
 		renderer.drawVoxelModel(*charModels[modelIndex], *this);
-	else if (cState == DYING)
+	else if (state == DYING)
 		renderer.drawVoxelModel(*deathModels[modelIndex], *this);
 
 	drawBullets();
@@ -29,9 +29,7 @@ void Character::moveBullets(float dt) {
 		itr->pos.z += dt * bulletSpeed * itr->direction.z;
 
 		//check if out of bounds
-		if (itr->pos.x >= game.currentLevel->levelSize || itr->pos.x <= -game.currentLevel->levelSize
-			|| itr->pos.y >= game.currentLevel->levelSize || itr->pos.y <= -game.currentLevel->levelSize
-			|| itr->pos.z >= game.currentLevel->levelSize || itr->pos.z <= -game.currentLevel->levelSize) {
+		if (game.currentLevel->outOfBounds(*itr)) {
 			itr = bullets.erase(itr);
 			if (itr == bullets.begin()) break;
 			itr--;
@@ -42,18 +40,18 @@ void Character::moveBullets(float dt) {
 void Character::nextModel() { //animate the character by switching the voxel model
 	lastModelUpdate = game.elapsedTime;
 
-	if (cState == ALIVE) {
+	if (state == ALIVE) {
 		modelIndex = (modelIndex + 1) % charModels.size();
-		size = charModels[modelIndex]->size;
+		size = charModels[modelIndex]->getSize();
 	}
 
-	if (cState == DYING) {
+	if (state == DYING) {
 		if (modelIndex == deathModels.size() - 1) {
-			cState = DEAD;
+			state = DEAD;
 			return;
 		}
 		modelIndex = (modelIndex + 1) % deathModels.size();
-		size = deathModels[modelIndex]->size;		
+		size = deathModels[modelIndex]->getSize();		
 	}
 }
 

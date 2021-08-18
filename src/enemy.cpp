@@ -33,14 +33,14 @@ void Enemy::updateState(float dt) {
 }
 
 void Enemy::takeDamage() {
-	if (cState != ALIVE) return;
+	if (state != ALIVE) return;
 	hp--;
 	lastDamaged = game.elapsedTime;
 	tintColor = glm::vec3(1.0f, 0.0f, 0.0f);  //give enemy a red tint
 
 	if (hp == 0) {
 		damageAudio.play("audio/enemy_death.mp3");
-		cState = DYING;
+		state = DYING;
 		modelUpdateDelay = 0.2f;
 		modelIndex = 0;
 	}

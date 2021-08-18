@@ -13,19 +13,19 @@ class Camera;
 class AudioPlayer;
 class HUD;
 
-// Represents the current state of the game
-enum GameState {
-    GAME_ACTIVE,
-    GAME_OVER,
-    GAME_WIN
-};
-
 // Game holds all game-related state and functionality.
 // Combines all game-related data into a single class for
 // easy access to each of the components and manageability.
 class Game
 {
 public:
+    // Represents the current state of the game
+    enum GameState {
+        GAME_ACTIVE,
+        GAME_OVER,
+        GAME_WIN
+    };
+
     GameState               State;
     Level*                  currentLevel;
     VoxelRenderer*          vRenderer;

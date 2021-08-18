@@ -22,7 +22,8 @@ struct Particle {
 
 /*generates a particle trail behind a moving object*/
 class TrailGenerator {
-public:
+	friend class VoxelRenderer;
+private:
 	GameObject* object;  
 	glm::vec3 color;
 	std::vector<Particle> particles;
@@ -30,6 +31,7 @@ public:
 	float updateDelay = 0.05f;
 	int numParticles;
 
+public:
 	TrailGenerator() {}
 	TrailGenerator(GameObject* object, glm::vec3 color, int numParticles);
 	void update(float dt);

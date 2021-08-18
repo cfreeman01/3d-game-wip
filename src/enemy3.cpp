@@ -111,7 +111,7 @@ void Enemy3::move(float dt) {
 
 void Enemy3::fire() {
 	VoxelModel* model;
-	if (cState == ALIVE)
+	if (state == ALIVE)
 		model = charModels[modelIndex];
 	else
 		model = deathModels[modelIndex];
@@ -119,7 +119,7 @@ void Enemy3::fire() {
 	//get middle point of enemy model
 	glm::mat4 modelMat = glm::mat4(1.0f);
 	modelMat = glm::translate(modelMat, pos);
-	glm::vec3 midPos = glm::vec3(0.5f * scale * model->size.x, 0.5f * scale * model->size.y, 0.5f * scale * model->size.z);
+	glm::vec3 midPos = glm::vec3(0.5f * scale * model->getSize().x, 0.5f * scale * model->getSize().y, 0.5f * scale * model->getSize().z);
 	midPos = modelMat * glm::vec4(midPos, 1.0f);  //middle point of the player model
 
 	bullets.emplace_back(midPos, glm::normalize(bulletDir), glm::vec3(0.8f, 0.2f, 0.2f), rotate.y, bulletScale, 3);
