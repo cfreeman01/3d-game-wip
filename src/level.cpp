@@ -14,6 +14,7 @@
 #include "enemy1.h"
 #include "enemy2.h"
 #include "enemy3.h"
+#include "boss.h"
 #include <iostream>
 #include <cmath>
 
@@ -71,6 +72,9 @@ Level::~Level() {
 	delete skybox;
 	for (int i = 0; i < enemies.size(); i++)
 		delete enemies[i];
+	if (healthPickup != nullptr) delete healthPickup;
+	if (powerup != nullptr) delete powerup;
+	if (boss != nullptr) delete boss;
 }
 
 void Level::draw() {
@@ -92,12 +96,17 @@ void Level::draw() {
 		renderer.drawVoxelModel(VoxelLoader::getModel("heart"), *healthPickup);
 	if (powerup != nullptr)
 		renderer.drawVoxelModel(VoxelLoader::getModel("star"), *powerup);
+
+	//draw boss
+	if (boss != nullptr)
+		boss->draw();
 }
 
 void Level::updateState(float dt) {
 	updateEnemies(dt);
 	updateDifficulty(dt);
 	updatePickups(dt);
+	if (boss != nullptr) boss->updateState(dt);
 
 	//move islands
 	for (auto itr = islands.begin(); itr != islands.end(); itr++) {
@@ -199,9 +208,15 @@ Pickup* Level::spawnPickup() {
 }
 
 void Level::updateDifficulty(float dt) {
-	if (game.elapsedTime - lastDifficultyUpdate >= 30.0f) {
+	if (game.elapsedTime - lastDifficultyUpdate >= difficultyIncrement) {
 		lastDifficultyUpdate = game.elapsedTime;
-		if (enemyLevel < 3) enemyLevel++;
+
+		if (enemyLevel < 3) enemyLevel++;  //allow more enemy types to spawn
+
+		if (game.elapsedTime >= bossSpawnTime && boss == nullptr) {  //possibly spawn a boss
+			boss = new Boss(game, renderer);
+			boss->pos = glm::vec3(0.0f, -1.5f, 35.0f);
+		}
 	}
 }
 

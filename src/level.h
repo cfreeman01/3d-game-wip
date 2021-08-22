@@ -13,6 +13,7 @@ class Character;
 class Skybox;
 class Enemy;
 class Island;
+class Boss;
 struct Pickup;
 
 /*contains data relating to enivronment and enemies, and methods for collision detection*/
@@ -25,6 +26,7 @@ private:
 	std::vector<Enemy*>      enemies;
 	Pickup*                  healthPickup = nullptr;
 	Pickup*                  powerup      = nullptr;
+	Boss*                    boss         = nullptr;
 
 	const float levelSize = 100.0f;        //1/2 of side length of the cube that makes up the play area
 	const float enemySpawnDelay = 4.0f;    //time between enemy spawns
@@ -53,6 +55,7 @@ public:
 
 	//difficulty
 	float lastDifficultyUpdate = 0.0f;
+	float difficultyIncrement = 10.0f;
 	void updateDifficulty(float dt);
 
 	//collisions
@@ -68,6 +71,8 @@ public:
 	void addIsland();
 	static void loadModels(); //load all models for the level's islands
 
+	//boss
+	float bossSpawnTime = 30.0f;
 
 	void draw();     //draw all islands and enemies
 

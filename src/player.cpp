@@ -38,6 +38,7 @@ Player::Player(Game& game, VoxelRenderer& renderer) : Character(game, renderer) 
 	bulletScale = 0.5f;
 	fireCooldown = 0.6f;
 	modelUpdateDelay = 0.5f;
+	hp = 5000;
 
 	//models must be loaded first!
 	charModels.push_back(&VoxelLoader::getModel("player_0"));

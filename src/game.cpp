@@ -20,6 +20,7 @@
 #include "enemy1.h"
 #include "enemy2.h"
 #include "enemy3.h"
+#include "boss.h"
 #include "hud.h"
 
 using namespace std;
@@ -49,6 +50,7 @@ void Game::Init()
     Enemy1::loadModels();
     Enemy2::loadModels();
     Enemy3::loadModels();
+    Boss::loadModels();
     Level::loadModels();
     //load textures
     ResourceManager::LoadTexture("textures/cursor.png", true, "cursor");
@@ -77,6 +79,9 @@ void Game::Init()
 
 void Game::Update(float dt)
 {
+    if (Keys[GLFW_KEY_Q]) {
+        int x = 2;
+    }
     if (State == GAME_OVER) return;
 
     elapsedTime += dt;
