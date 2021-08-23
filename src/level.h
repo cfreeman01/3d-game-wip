@@ -29,7 +29,7 @@ private:
 	Boss*                    boss         = nullptr;
 
 	const float levelSize = 100.0f;        //1/2 of side length of the cube that makes up the play area
-	const float enemySpawnDelay = 4.0f;    //time between enemy spawns
+	float enemySpawnDelay = 5.5f;          //time between enemy spawns
 	static const int numIslands = 5;       //total amount of unique islands that can possibly spawn (excluding first island)
 
 public:
@@ -55,7 +55,7 @@ public:
 
 	//difficulty
 	float lastDifficultyUpdate = 0.0f;
-	float difficultyIncrement = 10.0f;
+	float difficultyIncrement = 30.0f;
 	void updateDifficulty(float dt);
 
 	//collisions
@@ -63,6 +63,7 @@ public:
 	glm::vec3 checkPlayerLevelCollision(Player& player);
 	void checkPlayerBulletCollision(Player& player);
 	void checkBulletEnemyCollisions(Player& player);
+	void checkBulletBossCollisions(Player& player);
 	void checkPlayerPickupCollision(Player& player);
 	bool outOfBounds(GameObject& obj);
 
@@ -72,11 +73,12 @@ public:
 	static void loadModels(); //load all models for the level's islands
 
 	//boss
-	float bossSpawnTime = 30.0f;
+	float bossSpawnTime = 90.0f;
 
 	void draw();     //draw all islands and enemies
 
 	glm::vec3 getRandPerimeterPoint(); //get a random point along the perimeter of the level
+	float getLevelSize() { return levelSize; }
 };
 
 //TYPE DEFINITIONS 

@@ -127,7 +127,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         else if (action == GLFW_RELEASE) game.mouse1 = false;
     }
 
-    if (button == GLFW_MOUSE_BUTTON_2) {
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
         if (action == GLFW_PRESS) game.mouse2 = true;
         else if (action == GLFW_RELEASE) game.mouse2 = false;
     }

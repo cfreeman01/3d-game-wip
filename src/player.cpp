@@ -38,7 +38,7 @@ Player::Player(Game& game, VoxelRenderer& renderer) : Character(game, renderer) 
 	bulletScale = 0.5f;
 	fireCooldown = 0.6f;
 	modelUpdateDelay = 0.5f;
-	hp = 5000;
+	//hp = 500;
 
 	//models must be loaded first!
 	charModels.push_back(&VoxelLoader::getModel("player_0"));
@@ -106,6 +106,7 @@ void Player::processInput(float dt) {
 
 void Player::takeDamage() {
 	if (poweredUp) return;
+	if (game.elapsedTime - lastDamaged <= tintDuration) return;
 	if (state != ALIVE) return;
 	hp--;
 	lastDamaged = game.elapsedTime;
@@ -173,6 +174,11 @@ void Player::movePlayer(float dt) {
 	if (grounded) {
 		pos.z -= game.currentLevel->islandSpeed * dt;
 	}
+
+	if (game.currentLevel->outOfBounds(*this)) {  //if player is out of bounds
+		state = DEAD;
+		game.gameAudio.play("audio/player_death.mp3");
+	}
 }
 
 void Player::moveVertical(float dt) {
@@ -203,11 +209,6 @@ void Player::moveVertical(float dt) {
 			verticalVelocity = -0.1f;
 		}
 		if (displacement.y < 0) verticalVelocity = 0.0f;  //if displacement is negative, player has hit a ceiling, so set verticalVelocity=0
-	}
-
-	if (game.currentLevel->outOfBounds(*this)) {  //if player is out of bounds
-		state = DEAD;
-		game.gameAudio.play("audio/player_death.mp3");
 	}
 }
 

@@ -27,7 +27,7 @@ private:
 	void moveVertical(float dt);
 	void rotatePlayer(float dt);
 	bool grounded = false;
-	float verticalVelocity = -0.1f;
+	float verticalVelocity   = -0.1f;
 	const float dashCooldown = 5.0f;
 	float lastDashTime       = 0.0f;
 	float dashVelocity       = 0.1f;
@@ -35,7 +35,7 @@ private:
 
 	//powerup
 	bool poweredUp = false;
-	float powerUpDuration = 6.0f;
+	float powerUpDuration = 10.0f;
 	float lastPowerUpTime = 0.0f;
 
 	//audio

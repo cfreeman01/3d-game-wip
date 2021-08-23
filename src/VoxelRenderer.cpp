@@ -164,6 +164,7 @@ void VoxelRenderer::drawBullets(Character& character) {
 
     //make a contiguous data structure for the bullets
     std::vector<Character::bullet> bulletsVec;
+    bulletsVec.reserve(character.bullets.size());
     for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
         bulletsVec.push_back(*itr);
     }
@@ -210,6 +211,7 @@ void VoxelRenderer::drawTrails(Character& character) {
 
     //combine all bullet trails in a single vector
     std::vector<Particle> trails;
+    trails.reserve(character.bullets.size() * 5);
     for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
         trails.insert(trails.end(), itr->trail.particles.begin(), itr->trail.particles.end());
     }

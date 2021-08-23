@@ -55,6 +55,7 @@ void Game::Init()
     //load textures
     ResourceManager::LoadTexture("textures/cursor.png", true, "cursor");
     ResourceManager::LoadTexture("textures/gameOver.png", true, "GameOver");
+    ResourceManager::LoadTexture("textures/controls.png", true, "controls");
     HUD::loadTextures();
     //load shaders
     Shader& voxShader = ResourceManager::LoadShader("shaders/Voxel.vert", "shaders/Voxel.frag", nullptr, "VoxelShader");
@@ -79,9 +80,6 @@ void Game::Init()
 
 void Game::Update(float dt)
 {
-    if (Keys[GLFW_KEY_Q]) {
-        int x = 2;
-    }
     if (State == GAME_OVER) return;
 
     elapsedTime += dt;
@@ -115,10 +113,10 @@ void Game::ProcessInput(float dt)
         return;
     }
 
-    if (Keys[GLFW_KEY_1] && elapsedTime - lastCameraModeSwitch >= 0.5f) {
+    /*if (Keys[GLFW_KEY_1] && elapsedTime - lastCameraModeSwitch >= 0.5f) {
         mainCamera->freeMode = !mainCamera->freeMode;
         lastCameraModeSwitch = elapsedTime;
-    }
+    }*/
 
     //Process camera input
     if (mainCamera->freeMode) {
@@ -169,6 +167,13 @@ void Game::Render(float dt)
     sRenderer->DrawSprite(ResourceManager::GetTexture("cursor"), glm::vec2(mouseX, mouseY));
 
     hud->draw();
+
+    //display game controls for first ten seconds
+    if (elapsedTime <= 10.0f) {
+        float controlsSize = 200.0f;
+        sRenderer->DrawSprite(ResourceManager::GetTexture("controls"), glm::vec2(Width - controlsSize, 0),
+            glm::vec2(controlsSize, controlsSize));
+    }
 
     //draw a game over message
     if (State == GAME_OVER) {

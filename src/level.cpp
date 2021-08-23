@@ -106,7 +106,6 @@ void Level::updateState(float dt) {
 	updateEnemies(dt);
 	updateDifficulty(dt);
 	updatePickups(dt);
-	if (boss != nullptr) boss->updateState(dt);
 
 	//move islands
 	for (auto itr = islands.begin(); itr != islands.end(); itr++) {
@@ -140,8 +139,18 @@ void Level::updateEnemies(float dt) {
 			enemies[i]->updateState(dt);
 	}
 
+	//update or remove boss
+	if (boss != nullptr) {
+		boss->updateState(dt);
+		if (boss->getState() == Character::DEAD) {
+			delete boss;
+			boss = nullptr;
+			bossSpawnTime = game.elapsedTime + 60.0f;
+		}
+	}
+
 	//possibly spawn new enemy
-	if (enemySpawnTimer >= enemySpawnDelay && enemies.size() < 5) {
+	if (enemySpawnTimer >= enemySpawnDelay && enemies.size() < 5 && boss == nullptr) {
 		enemySpawnTimer = 0.0f;
 		int enemyType = (rand() % enemyLevel) + 1;
 		if (enemyType == 1) {
@@ -173,10 +182,12 @@ void Level::updatePickups(float dt) {
 	//move pickups
 	if (healthPickup != nullptr) {
 		healthPickup->pos += dt * healthPickup->speed * healthPickup->velocity;
+		healthPickup->pos.y = game.player->pos.y;
 		healthPickup->rotate.y += (360 * dt);
 	}
 	if (powerup != nullptr) {
 		powerup->pos += dt * powerup->speed * powerup->velocity;
+		powerup->pos.y = game.player->pos.y;
 		powerup->rotate.y += (360 * dt);
 	}
 
@@ -203,7 +214,7 @@ Pickup* Level::spawnPickup() {
 	if (newPos.x < 0) newVelocity = glm::vec3(1, 0, 0);
 	else newVelocity = glm::vec3(-1, 0, 0);
 	Pickup* pickup = new Pickup(newPos, newVelocity, pickupSpeed);
-	pickup->scale = 0.125f;
+	pickup->scale = 0.13f;
 	return pickup;
 }
 
@@ -213,9 +224,13 @@ void Level::updateDifficulty(float dt) {
 
 		if (enemyLevel < 3) enemyLevel++;  //allow more enemy types to spawn
 
+		islandSpeed += 0.3f;
+
+		if(enemySpawnDelay > 3.0f) enemySpawnDelay -= 0.2f;
+
 		if (game.elapsedTime >= bossSpawnTime && boss == nullptr) {  //possibly spawn a boss
 			boss = new Boss(game, renderer);
-			boss->pos = glm::vec3(0.0f, -1.5f, 35.0f);
+			boss->pos = glm::vec3(40.0f, 0.0f, 40.0f);
 		}
 	}
 }
@@ -360,14 +375,38 @@ void Level::checkBulletEnemyCollisions(Player& player) {
 
 		}
 	}
+	if (boss != nullptr) checkBulletBossCollisions(player);
 }
 
-//check if enemy's bullets collide with player
+//check if player's bullets collide with boss
+void Level::checkBulletBossCollisions(Player& player) {
+	for (auto bullet = player.bulletsBegin(); bullet != player.bulletsEnd(); bullet++) {
+		if (checkCollisionAABB(*bullet, *boss) != glm::vec3(0, 0, 0)) {
+			boss->takeDamage();
+			bullet = player.destroyBullet(bullet);
+			if (bullet == player.bulletsBegin()) return;
+			bullet--;
+			break;
+		}
+	}
+}
+
+//check if enemy's or boss' bullets collide with player
 void Level::checkPlayerBulletCollision(Player& player) {
 	for (int i = 0; i < enemies.size(); i++) {
 		for (auto bullet = enemies[i]->bulletsBegin(); bullet != enemies[i]->bulletsEnd(); bullet++) {
 			if (checkCollisionAABB(player, *bullet) != glm::vec3(0, 0, 0)) {
 				enemies[i]->destroyBullet(bullet);
+				player.takeDamage();
+				return;
+			}
+		}
+	}
+
+	if (boss != nullptr) {
+		for (auto bullet = boss->bulletsBegin(); bullet != boss->bulletsEnd(); bullet++) {
+			if (checkCollisionAABB(player, *bullet) != glm::vec3(0, 0, 0)) {
+				boss->destroyBullet(bullet);
 				player.takeDamage();
 				return;
 			}
