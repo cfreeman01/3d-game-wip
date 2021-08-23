@@ -30,7 +30,7 @@ private:
 
 	const float levelSize = 100.0f;        //1/2 of side length of the cube that makes up the play area
 	float enemySpawnDelay = 5.5f;          //time between enemy spawns
-	static const int numIslands = 5;       //total amount of unique islands that can possibly spawn (excluding first island)
+	static const int numIslands = 7;       //total amount of unique islands that can possibly spawn (excluding first island)
 
 public:
 	Level(VoxelRenderer& renderer, Game& game);
