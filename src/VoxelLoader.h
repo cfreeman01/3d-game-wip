@@ -25,6 +25,6 @@ public:
 	//get a voxel model from storage
 	static VoxelModel& getModel(std::string name);
 
-	static unsigned int VoxelLoader::byteArrayToInt(char bytes[4]);
+	static unsigned int byteArrayToInt(char bytes[4]);
 	static char* getNextFourBytes(char bytes[4], char* buffer, int& i);
 };

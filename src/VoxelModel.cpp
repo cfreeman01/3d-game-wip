@@ -1,6 +1,6 @@
 #include "VoxelModel.h"
 #include "resource_manager.h"
-#include "GameObject.h"
+#include "gameObject.h"
 #include "VoxelRenderer.h"
 
 glm::vec3 VoxelModel::getVoxPos(int i) { //return the local position of the voxel at vRenderData[i]
