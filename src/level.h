@@ -48,13 +48,13 @@ public:
 	glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	//enemies
-	int enemyLevel = 1;  //determines which kind of enemies to spawn
+	int enemyLevel = 1;              //determines which kind of enemies to spawn
 	float enemySpawnTimer = 0.0f;    //keeps track of when to spawn an enemy
 	void updateEnemies(float dt);
 
 	//pickups
 	float pickupTimer    = 0.0f;
-	float pickupCooldown = 10.0f;
+	float pickupCooldown = 20.0f;
 	float pickupSpeed    = 8.0f;
 	void updatePickups(float dt);
 	Pickup* spawnPickup();

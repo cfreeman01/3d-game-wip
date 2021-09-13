@@ -5,12 +5,14 @@
 //FORWARD DECLARATIONS
 class GameObject;
 
-struct Particle {
+struct Particle
+{
 	float x, y, z;
 	float R, G, B;
 	float life = 1.0f;
 
-	Particle(glm::vec3 pos, glm::vec3 color){
+	Particle(glm::vec3 pos, glm::vec3 color)
+	{
 		x = pos.x;
 		y = pos.y;
 		z = pos.z;
@@ -21,10 +23,12 @@ struct Particle {
 };
 
 /*generates a particle trail behind a moving object*/
-class TrailGenerator {
+class TrailGenerator
+{
 	friend class VoxelRenderer;
+
 private:
-	GameObject* object;  
+	GameObject *object;
 	glm::vec3 color;
 	std::vector<Particle> particles;
 	float updateTimer = 0.0f;
@@ -33,6 +37,6 @@ private:
 
 public:
 	TrailGenerator() {}
-	TrailGenerator(GameObject* object, glm::vec3 color, int numParticles);
+	TrailGenerator(GameObject *object, glm::vec3 color, int numParticles);
 	void update(float dt);
 };

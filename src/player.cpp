@@ -185,7 +185,7 @@ void Player::movePlayer(float dt)
 	//if player is dashing, move along dash direction and diminish the dash speed
 	if (dashDirection != glm::vec3(0, 0, 0))
 	{
-		pos += dashVelocity * dashDirection;
+		pos += dashVelocity * dashDirection * dt;
 		dashDirection.x = (dashDirection.x - (2 * dt) < 0) ? 0 : dashDirection.x - (2 * dt);
 		dashDirection.y = (dashDirection.y - (2 * dt) < 0) ? 0 : dashDirection.y - (2 * dt);
 		dashDirection.z = (dashDirection.z - (2 * dt) < 0) ? 0 : dashDirection.z - (2 * dt);

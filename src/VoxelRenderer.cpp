@@ -58,11 +58,13 @@ float voxelVertices[] = {
     -0.5f,  0.5f, -0.5f,    0.0f,  1.0f,  0.0f
 };
 
-VoxelRenderer::VoxelRenderer(Shader& shader, Game& game): shader(shader), game(game) {
+VoxelRenderer::VoxelRenderer(Shader &shader, Game &game) : shader(shader), game(game)
+{
     initRenderData();
 }
 
-void VoxelRenderer::initRenderData() {
+void VoxelRenderer::initRenderData()
+{
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
@@ -70,14 +72,14 @@ void VoxelRenderer::initRenderData() {
     glGenBuffers(1, &pointsVBO);
     glBindBuffer(GL_ARRAY_BUFFER, pointsVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(voxelVertices), voxelVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
     unsigned int normalsVBO;
     glGenBuffers(1, &normalsVBO);
     glBindBuffer(GL_ARRAY_BUFFER, normalsVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(voxelVertices), voxelVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     shader.Use();
@@ -87,7 +89,8 @@ void VoxelRenderer::initRenderData() {
 /*draw a VoxelModel that is tied to a specific GameObject.
 the GameObject holds the dynamic game data (like world position) while
 the VoxelModel object holds the constant data obtained from a .VOX file*/
-void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel, GameObject& object) {
+void VoxelRenderer::drawVoxelModel(VoxelModel &voxelModel, GameObject &object)
+{
     shader.Use();
     glBindVertexArray(VAO);
     glm::mat4 model1 = glm::mat4(1.0f);
@@ -126,12 +129,12 @@ void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel, GameObject& object) {
 
     //offset
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(VoxelRenderData), (void*)0);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(VoxelRenderData), (void *)0);
     glVertexAttribDivisor(2, 1);
 
     //color
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(VoxelRenderData), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(VoxelRenderData), (void *)(3 * sizeof(float)));
     glVertexAttribDivisor(3, 1);
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, 36, voxelModel.numVoxels);
@@ -141,7 +144,8 @@ void VoxelRenderer::drawVoxelModel(VoxelModel& voxelModel, GameObject& object) {
 }
 
 /*draw a set of bullets for a character*/
-void VoxelRenderer::drawBullets(Character& character) {
+void VoxelRenderer::drawBullets(Character &character)
+{
     shader.Use();
     glBindVertexArray(VAO);
     glm::mat4 model1 = glm::mat4(1.0f);
@@ -160,12 +164,13 @@ void VoxelRenderer::drawBullets(Character& character) {
     shader.SetMatrix4("view", view);
     shader.SetMatrix4("projection", projection);
     shader.SetFloat("modelScale", 1.0f);
-    shader.SetVector3f("tintColor", glm::vec3(1.0f,1.0f,1.0f));
+    shader.SetVector3f("tintColor", glm::vec3(1.0f, 1.0f, 1.0f));
 
     //make a contiguous data structure for the bullets
     std::vector<Character::bullet> bulletsVec;
     bulletsVec.reserve(character.bullets.size());
-    for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
+    for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++)
+    {
         bulletsVec.push_back(*itr);
     }
 
@@ -177,12 +182,12 @@ void VoxelRenderer::drawBullets(Character& character) {
 
     //bullet position
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Character::bullet), (void*)0);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Character::bullet), (void *)0);
     glVertexAttribDivisor(2, 1);
 
     //color
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Character::bullet), (void*)(sizeof(GameObject)));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Character::bullet), (void *)(sizeof(GameObject)));
     glVertexAttribDivisor(3, 1);
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, 36, character.bullets.size());
@@ -192,7 +197,8 @@ void VoxelRenderer::drawBullets(Character& character) {
 }
 
 /*draw the particle trails for a character's bullets*/
-void VoxelRenderer::drawTrails(Character& character) {
+void VoxelRenderer::drawTrails(Character &character)
+{
     ResourceManager::GetShader("TrailShader").Use();
     glBindVertexArray(VAO);
     glm::mat4 model = glm::mat4(1.0f);
@@ -212,7 +218,8 @@ void VoxelRenderer::drawTrails(Character& character) {
     //combine all bullet trails in a single vector
     std::vector<Particle> trails;
     trails.reserve(character.bullets.size() * 5);
-    for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++) {
+    for (auto itr = character.bullets.begin(); itr != character.bullets.end(); itr++)
+    {
         trails.insert(trails.end(), itr->trail.particles.begin(), itr->trail.particles.end());
     }
 
@@ -224,17 +231,17 @@ void VoxelRenderer::drawTrails(Character& character) {
 
     //particle position
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)0);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (void *)0);
     glVertexAttribDivisor(2, 1);
 
     //color
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (void *)(3 * sizeof(float)));
     glVertexAttribDivisor(3, 1);
 
     //alpha value (particle's "life")
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)(6 * sizeof(float)));
+    glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Particle), (void *)(6 * sizeof(float)));
     glVertexAttribDivisor(4, 1);
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, 36, trails.size());

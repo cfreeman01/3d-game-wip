@@ -15,7 +15,8 @@ Skybox::Skybox(Game& game, std::vector<std::string> textures, float size): game(
     textureID = loadTextures(textures);
 }
 
-unsigned int Skybox::initRenderData() {
+unsigned int Skybox::initRenderData()
+ {
     float skyboxVertices[] = {         
         -1.0f,  1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
@@ -74,7 +75,8 @@ unsigned int Skybox::initRenderData() {
     return newVAO;
 }
 
-unsigned int Skybox::loadTextures(std::vector<std::string> textures) {
+unsigned int Skybox::loadTextures(std::vector<std::string> textures)
+{
     unsigned int ID;
     glGenTextures(1, &ID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, ID);
@@ -82,12 +84,11 @@ unsigned int Skybox::loadTextures(std::vector<std::string> textures) {
     int width, height, nrChannels;
     for (unsigned int i = 0; i < textures.size(); i++)
     {
-        unsigned char* data = stbi_load(textures[i].c_str(), &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load(textures[i].c_str(), &width, &height, &nrChannels, 0);
         if (data)
         {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data
-            );
+                         0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
             stbi_image_free(data);
         }
         else
@@ -105,8 +106,9 @@ unsigned int Skybox::loadTextures(std::vector<std::string> textures) {
     return ID;
 }
 
-void Skybox::draw() {
-    Shader& skyboxShader = ResourceManager::GetShader("Skybox");
+void Skybox::draw()
+{
+    Shader &skyboxShader = ResourceManager::GetShader("Skybox");
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::scale(model, glm::vec3(size));
@@ -115,7 +117,7 @@ void Skybox::draw() {
     skyboxShader.SetMatrix4("model", model);
     skyboxShader.SetMatrix4("projection", game.mainCamera->GetProjectionMatrix());
     skyboxShader.SetMatrix4("view", game.mainCamera->GetViewMatrix());
-    
+
     glBindVertexArray(VAO);
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
     glDrawArrays(GL_TRIANGLES, 0, 36);

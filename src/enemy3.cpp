@@ -7,7 +7,8 @@
 
 SoLoud::Wav Enemy3::shootAudio;
 
-void Enemy3::loadModels() {
+void Enemy3::loadModels()
+{
 	VoxelLoader::loadModel("models/enemy3/0.vox", "enemy3_0");
 	VoxelLoader::loadModel("models/enemy3/1.vox", "enemy3_1");
 	VoxelLoader::loadModel("models/enemy3/2.vox", "enemy3_2");
@@ -21,11 +22,13 @@ void Enemy3::loadModels() {
 	VoxelLoader::loadModel("models/enemy3/death4.vox", "enemy3_death4");
 }
 
-void Enemy3::loadAudio(){
+void Enemy3::loadAudio()
+{
 	shootAudio.load("audio/enemy3_gunshot.wav");
 }
 
-Enemy3::Enemy3(Game& game, VoxelRenderer& renderer) : Enemy(game, renderer) {
+Enemy3::Enemy3(Game &game, VoxelRenderer &renderer) : Enemy(game, renderer)
+{
 	//set properties
 	speed = 6.0f;
 	bulletSpeed = 20.0f;
@@ -52,9 +55,11 @@ Enemy3::Enemy3(Game& game, VoxelRenderer& renderer) : Enemy(game, renderer) {
 	pos.y = game.player->pos.y;
 }
 
-void Enemy3::updateState(float dt) {
+void Enemy3::updateState(float dt)
+{
 	//animate
-	if (game.elapsedTime - lastModelUpdate >= modelUpdateDelay) {
+	if (game.elapsedTime - lastModelUpdate >= modelUpdateDelay)
+	{
 		nextModel();
 	}
 
@@ -62,31 +67,36 @@ void Enemy3::updateState(float dt) {
 	move(dt);
 
 	//possibly fire
-	if (game.elapsedTime - lastFireTime >= fireCooldown) {
+	if (game.elapsedTime - lastFireTime >= fireCooldown)
+	{
 		lastFireTime = game.elapsedTime;
 
-		if (glm::abs(fireCooldown - longFireCooldown) <= 0.01f) {  //if fireCooldown is at its higher value
-			fireCooldown = shortFireCooldown;            //set it to lower value (to fire repeatedly)
+		if (glm::abs(fireCooldown - longFireCooldown) <= 0.01f)
+		{									  //if fireCooldown is at its higher value
+			fireCooldown = shortFireCooldown; //set it to lower value (to fire repeatedly)
 			bulletCount = 0;
 			game.audioEngine.play(shootAudio);
 		}
 
-		if (glm::abs(fireCooldown - shortFireCooldown) <= 0.01f) { //if fireCooldown is at its lower value (enemy is firing)
+		if (glm::abs(fireCooldown - shortFireCooldown) <= 0.01f)
+		{ //if fireCooldown is at its lower value (enemy is firing)
 			fire();
 			bulletCount++;
-			if (bulletCount == 15) fireCooldown = longFireCooldown;
+			if (bulletCount == 15)
+				fireCooldown = longFireCooldown;
 		}
 	}
 
 	//update bullets
 	moveBullets(dt);
-	for (auto itr = bullets.begin(); itr != bullets.end(); itr++) {
+	for (auto itr = bullets.begin(); itr != bullets.end(); itr++)
+	{
 		itr->trail.update(dt);
 	}
 
 	//update bulletDir
 	glm::mat4 rot = glm::mat4(1.0f);
-	rot = glm::rotate(rot, glm::radians(360 * dt), glm::vec3(0,1,0));
+	rot = glm::rotate(rot, glm::radians(360 * dt), glm::vec3(0, 1, 0));
 	bulletDir = rot * glm::vec4(bulletDir, 1.0f);
 
 	//check if tint needs to be changed
@@ -94,11 +104,13 @@ void Enemy3::updateState(float dt) {
 		tintColor = glm::vec3(1.0f, 1.0f, 1.0f);
 }
 
-void Enemy3::move(float dt) {
+void Enemy3::move(float dt)
+{
 	//move toward player
 	glm::vec3 diff = game.player->pos - this->pos;
 	pos.y += 2 * speed * dt * glm::normalize(diff).y;
-	if (glm::sqrt((diff.x * diff.x) + (diff.z * diff.z)) > 16.0f) {
+	if (glm::sqrt((diff.x * diff.x) + (diff.z * diff.z)) > 16.0f)
+	{
 		pos.x += speed * dt * glm::normalize(diff).x;
 		pos.z += speed * dt * glm::normalize(diff).z;
 	}
@@ -106,14 +118,16 @@ void Enemy3::move(float dt) {
 	//rotate to face player
 	float angle = acos(glm::dot(glm::normalize(diff), glm::vec3(-1.0f, 0.0f, 0.0f)));
 	glm::vec3 cross = glm::normalize(glm::cross(glm::normalize(diff), glm::vec3(-1.0f, 0.0f, 0.0f)));
-	if (glm::abs(cross.y - 1.0f) <= .01f) {
+	if (glm::abs(cross.y - 1.0f) <= .01f)
+	{
 		angle = -angle;
 	}
 	rotate.y = glm::degrees(angle);
 }
 
-void Enemy3::fire() {
-	VoxelModel* model;
+void Enemy3::fire()
+{
+	VoxelModel *model;
 	if (state == ALIVE)
 		model = charModels[modelIndex];
 	else
@@ -123,7 +137,7 @@ void Enemy3::fire() {
 	glm::mat4 modelMat = glm::mat4(1.0f);
 	modelMat = glm::translate(modelMat, pos);
 	glm::vec3 midPos = glm::vec3(0.5f * scale * model->getSize().x, 0.5f * scale * model->getSize().y, 0.5f * scale * model->getSize().z);
-	midPos = modelMat * glm::vec4(midPos, 1.0f);  //middle point of the player model
+	midPos = modelMat * glm::vec4(midPos, 1.0f); //middle point of the player model
 
 	bullets.emplace_back(midPos, glm::normalize(bulletDir), glm::vec3(0.8f, 0.2f, 0.2f), rotate.y, bulletScale, 3);
 }

@@ -6,9 +6,10 @@
 class Shader;
 class Game;
 
-class Skybox {
+class Skybox
+{
 private:
-	Game& game;
+	Game &game;
 	unsigned int VAO;
 	unsigned int textureID;
 	float size;
@@ -17,6 +18,6 @@ private:
 	unsigned int initRenderData();
 
 public:
-	Skybox(Game& game, std::vector<std::string> textures, float size);
+	Skybox(Game &game, std::vector<std::string> textures, float size);
 	void draw();
 };

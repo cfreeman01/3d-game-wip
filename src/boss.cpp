@@ -12,8 +12,7 @@ std::vector<glm::vec3> bossBulletColors = {
 	glm::vec3(0.2f, 1.0f, 0.2f),
 	glm::vec3(0.4f, 0.0f, 1.0f),
 	glm::vec3(1.0f, 0.8f, 0.0f),
-	glm::vec3(1.0f, 0.4f, 0.0f)
-};
+	glm::vec3(1.0f, 0.4f, 0.0f)};
 
 //direction vectors for bullets fired by the boss
 //each vector is a point on a square perimeter, to permit the bullets to fire in a square pattern
@@ -68,7 +67,8 @@ std::vector<glm::vec3> bossBulletDirections = {
 	glm::vec3(0.5f, 0.0f, -0.5f),
 };
 
-void Boss::loadModels() {
+void Boss::loadModels()
+{
 	VoxelLoader::loadModel("models/boss/0.vox", "boss_0");
 	VoxelLoader::loadModel("models/boss/1.vox", "boss_1");
 	VoxelLoader::loadModel("models/boss/2.vox", "boss_2");
@@ -83,7 +83,8 @@ void Boss::loadModels() {
 	VoxelLoader::loadModel("models/boss/death_7.vox", "boss_death_7");
 }
 
-Boss::Boss(Game& game, VoxelRenderer& renderer): Character(game,renderer) {
+Boss::Boss(Game &game, VoxelRenderer &renderer) : Character(game, renderer)
+{
 	//set properties
 	speed = 10.0f;
 	hp = 30;
@@ -114,9 +115,11 @@ Boss::Boss(Game& game, VoxelRenderer& renderer): Character(game,renderer) {
 	deathAudio.load("audio/boss_death.wav");
 }
 
-void Boss::updateState(float dt) {
+void Boss::updateState(float dt)
+{
 	//animate
-	if (game.elapsedTime - lastModelUpdate >= modelUpdateDelay) {
+	if (game.elapsedTime - lastModelUpdate >= modelUpdateDelay)
+	{
 		nextModel();
 	}
 
@@ -124,14 +127,16 @@ void Boss::updateState(float dt) {
 	move(dt);
 
 	//possibly fire
-	if (game.elapsedTime - lastFireTime >= fireCooldown) {
+	if (game.elapsedTime - lastFireTime >= fireCooldown)
+	{
 		lastFireTime = game.elapsedTime;
 		fire();
 	}
 
 	//update bullets
 	moveBullets(dt);
-	for (auto itr = bullets.begin(); itr != bullets.end(); itr++) {
+	for (auto itr = bullets.begin(); itr != bullets.end(); itr++)
+	{
 		itr->trail.update(dt);
 	}
 
@@ -140,18 +145,21 @@ void Boss::updateState(float dt) {
 		tintColor = glm::vec3(1.0f, 1.0f, 1.0f);
 }
 
-void Boss::move(float dt) {
+void Boss::move(float dt)
+{
 	glm::vec3 diff = game.player->pos - this->pos;
 	float arenaSize = game.currentLevel->getLevelSize() / 2;
 
-	pos += speed * dt * velocity;                      //move in x-z plane
-	pos.y += 2 * speed * dt * glm::normalize(diff).y;  //move toward player's y position
+	pos += speed * dt * velocity;					  //move in x-z plane
+	pos.y += 2 * speed * dt * glm::normalize(diff).y; //move toward player's y position
 
 	//bounce the boss off sides of the arena
-	if (pos.x >= arenaSize || pos.x <= -arenaSize) {
+	if (pos.x >= arenaSize || pos.x <= -arenaSize)
+	{
 		velocity.x = -velocity.x;
 	}
-	if (pos.z >= arenaSize || pos.z <= -arenaSize) {
+	if (pos.z >= arenaSize || pos.z <= -arenaSize)
+	{
 		velocity.z = -velocity.z;
 	}
 
@@ -160,14 +168,17 @@ void Boss::move(float dt) {
 	rotate.y += 60 * dt;
 }
 
-void Boss::takeDamage() {
-	if (state != ALIVE) return;
+void Boss::takeDamage()
+{
+	if (state != ALIVE)
+		return;
 	game.audioEngine.play(damageAudio);
 	hp--;
 	lastDamaged = game.elapsedTime;
-	tintColor = glm::vec3(1.0f, 0.0f, 0.0f);  //give enemy a red tint
+	tintColor = glm::vec3(1.0f, 0.0f, 0.0f); //give enemy a red tint
 
-	if (hp == 0) {
+	if (hp == 0)
+	{
 		state = DYING;
 		game.audioEngine.play(deathAudio);
 		modelUpdateDelay = 0.2f;
@@ -175,8 +186,9 @@ void Boss::takeDamage() {
 	}
 }
 
-void Boss::fire() {
-	VoxelModel* model;
+void Boss::fire()
+{
+	VoxelModel *model;
 	if (state == ALIVE)
 		model = charModels[modelIndex];
 	else
@@ -186,9 +198,10 @@ void Boss::fire() {
 	glm::mat4 modelMat = glm::mat4(1.0f);
 	modelMat = glm::translate(modelMat, pos);
 	glm::vec3 midPos = glm::vec3(0.5f * scale * model->getSize().x, 0.0f, 0.5f * scale * model->getSize().z);
-	midPos = modelMat * glm::vec4(midPos, 1.0f);  //middle point of the player model
+	midPos = modelMat * glm::vec4(midPos, 1.0f); //middle point of the player model
 
-	for (int i = 0; i < bossBulletDirections.size(); i++) {
+	for (int i = 0; i < bossBulletDirections.size(); i++)
+	{
 		bullets.emplace_back(midPos, bossBulletDirections[i], bossBulletColors[rand() % bossBulletColors.size()], rotate.y, bulletScale, 2);
 	}
 	game.audioEngine.play(shootAudio);

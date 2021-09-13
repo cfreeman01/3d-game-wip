@@ -86,37 +86,45 @@ void Camera::updateCameraVectors()
     Up = glm::normalize(glm::cross(Right, Front));
 }
 
-void Camera::rotate(float dt) {
-    if (rotating == 0) return;
+void Camera::rotate(float dt)
+{
+    if (rotating == 0)
+        return;
 
     glm::mat4 model = glm::mat4(1.0f);
 
     //calculate rotation amount for this frame
     float rotation;
-    if (degreesRotated + (90 * dt) > 90) rotation = 90 - degreesRotated;
-    else rotation = 120 * dt;
+    if (degreesRotated + (90 * dt) > 90)
+        rotation = 90 - degreesRotated;
+    else
+        rotation = 120 * dt;
     degreesRotated += rotation;
 
-    if (rotating == 1) { //clockwise
+    if (rotating == 1)
+    { //clockwise
         model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
         Position = glm::vec3(model * glm::vec4(Position, 1.0f));
         Yaw -= rotation;
     }
 
-    if (rotating == -1) { //counterclockwise
+    if (rotating == -1)
+    { //counterclockwise
         model = glm::rotate(model, glm::radians(-rotation), glm::vec3(0.0f, 1.0f, 0.0f));
         Position = glm::vec3(model * glm::vec4(Position, 1.0f));
         Yaw += rotation;
     }
 
-    if (degreesRotated >= 90) { //finished rotating
+    if (degreesRotated >= 90)
+    { //finished rotating
         rotating = 0;
         degreesRotated = 0.0f;
     }
     updateCameraVectors();
 }
 
-void Camera::moveVertical(float dy) {
+void Camera::moveVertical(float dy)
+{
     Position.y += dy;
     updateCameraVectors();
 }

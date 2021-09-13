@@ -14,9 +14,11 @@ class VoxelModel;
 class VoxelRenderer;
 
 /*base class for player and enemies*/
-class Character: public GameObject{
+class Character: public GameObject
+{
 public:
-	enum State { //character state
+	enum State  //character state
+	{ 
 		ALIVE,
 		DYING,
 		DEAD

@@ -3,15 +3,16 @@
 #include "soloud.h"
 #include "soloud_wav.h"
 
-//FORWARD DECLARATIONS 
+//FORWARD DECLARATIONS
 class Game;
 class VoxelModel;
 class VoxelRenderer;
 
 /*object representing the player character*/
-class Player: public Character {
+class Player : public Character
+{
 public:
-	Player(Game& game, VoxelRenderer& renderer);
+	Player(Game &game, VoxelRenderer &renderer);
 
 	static void loadModels();
 	void updateState(float dt);
@@ -19,7 +20,7 @@ public:
 	void takeDamage();
 	void powerUp();
 	float getLastDashTime() { return lastDashTime; }
-	
+
 private:
 	void fire();
 
@@ -28,11 +29,11 @@ private:
 	void moveVertical(float dt);
 	void rotatePlayer(float dt);
 	bool grounded = false;
-	float verticalVelocity   = -0.1f;
+	float verticalVelocity = -0.1f;
 	const float dashCooldown = 5.0f;
-	float lastDashTime       = 0.0f;
-	float dashVelocity       = 1.0f;
-	glm::vec3 dashDirection  = glm::vec3(0.0f);
+	float lastDashTime = 0.0f;
+	float dashVelocity = 75.0f;
+	glm::vec3 dashDirection = glm::vec3(0.0f);
 
 	//audio
 	SoLoud::Wav shootAudio;
