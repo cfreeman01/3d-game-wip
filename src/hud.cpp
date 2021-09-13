@@ -20,6 +20,10 @@ void HUD::loadTextures() {
 
 HUD::HUD(Game& game, SpriteRenderer& renderer) : game(game), renderer(renderer) {
 
+	padding   = game.Width/30.0f;
+	hp_size   = glm::vec2(game.Width/14.0f, game.Width/26.3f);
+	dash_size = glm::vec2(game.Width/14.0f, game.Width/26.3f);
+
 	//calculate positions for the two HUD elements
 	float largerHeight = (hp_size.y > dash_size.y) ? hp_size.y : dash_size.y;
 	hp_pos.y = dash_pos.y = game.Height - padding - (scale * largerHeight);

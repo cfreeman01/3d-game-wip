@@ -2,6 +2,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include "soloud.h"
+#include "soloud_wav.h"
 
 //FORWARD DECLARATIONS
 class Level;
@@ -10,7 +12,6 @@ class Character;
 class Player;
 class SpriteRenderer;
 class Camera;
-class AudioPlayer;
 class HUD;
 
 // Game holds all game-related state and functionality.
@@ -43,6 +44,12 @@ public:
     int                     Width, Height;
     //timing
     float                   elapsedTime = 0.0f;
+    //audio
+    SoLoud::Soloud audioEngine;
+    SoLoud::Wav restartAudio;
+    SoLoud::Wav gameOverAudio;
+    SoLoud::Wav swoosh1;
+    SoLoud::Wav swoosh2;
     // constructor/destructor
     Game(unsigned int width, unsigned int height);
     ~Game();
@@ -53,6 +60,4 @@ public:
     void Update(float dt);
     void Render(float dt);
     void restart();
-    //audio
-    static AudioPlayer gameAudio;
 };

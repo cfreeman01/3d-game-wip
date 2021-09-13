@@ -4,9 +4,8 @@
 #include "level.h"
 #include "VoxelLoader.h"
 #include "VoxelModel.h"
-#include "audioPlayer.h"
 
-AudioPlayer Enemy3::shootAudio;
+SoLoud::Wav Enemy3::shootAudio;
 
 void Enemy3::loadModels() {
 	VoxelLoader::loadModel("models/enemy3/0.vox", "enemy3_0");
@@ -20,6 +19,10 @@ void Enemy3::loadModels() {
 	VoxelLoader::loadModel("models/enemy3/death2.vox", "enemy3_death2");
 	VoxelLoader::loadModel("models/enemy3/death3.vox", "enemy3_death3");
 	VoxelLoader::loadModel("models/enemy3/death4.vox", "enemy3_death4");
+}
+
+void Enemy3::loadAudio(){
+	shootAudio.load("audio/enemy3_gunshot.wav");
 }
 
 Enemy3::Enemy3(Game& game, VoxelRenderer& renderer) : Enemy(game, renderer) {
@@ -65,7 +68,7 @@ void Enemy3::updateState(float dt) {
 		if (glm::abs(fireCooldown - longFireCooldown) <= 0.01f) {  //if fireCooldown is at its higher value
 			fireCooldown = shortFireCooldown;            //set it to lower value (to fire repeatedly)
 			bulletCount = 0;
-			shootAudio.play("audio/enemy3_gunshot.mp3");
+			game.audioEngine.play(shootAudio);
 		}
 
 		if (glm::abs(fireCooldown - shortFireCooldown) <= 0.01f) { //if fireCooldown is at its lower value (enemy is firing)

@@ -54,7 +54,7 @@ public:
     }
     glm::mat4 GetProjectionMatrix()
     {
-        return glm::perspective(glm::radians(45.0f), 900.0f / 900.0f, 0.1f, 500.0f);  //persepective
+        return glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 500.0f);  //persepective
     }
 
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)

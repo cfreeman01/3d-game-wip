@@ -1,6 +1,5 @@
 #include "level.h"
 #include "game.h"
-#include "audioPlayer.h"
 #include "player.h"
 #include "character.h"
 #include "VoxelRenderer.h"
@@ -55,6 +54,10 @@ Level::Level(VoxelRenderer& renderer, Game& game) : renderer(renderer), game(gam
 	//initialize lighting
 	renderer.setLightPos(lightPos);
 	renderer.setLightColor(lightColor);
+
+	//load audio
+	hpGainAudio.load("audio/hp_gain.wav");
+	powerupAudio.load("audio/powerup.wav");
 
 	//initialize skybox
 	std::vector<std::string> skyboxTextures = {
@@ -341,19 +344,19 @@ glm::vec3 Level::checkPlayerLevelCollision(Player& player) {
 void Level::checkPlayerPickupCollision(Player& player) {
 	if (healthPickup != nullptr) {
 		if (checkCollisionAABB(player, *healthPickup) != glm::vec3(0, 0, 0)) {
+			game.audioEngine.play(hpGainAudio);
 			player.incHP();
 			delete healthPickup;
 			healthPickup = nullptr;
-			game.gameAudio.play("audio/hp_gain.mp3");
 		}
 	}
 
 	if (powerup != nullptr) {
 		if (checkCollisionAABB(player, *powerup) != glm::vec3(0, 0, 0)) {
+			game.audioEngine.play(powerupAudio);
 			player.powerUp();
 			delete powerup;
 			powerup = nullptr;
-			game.gameAudio.play("audio/powerup.mp3");
 		}
 	}
 }

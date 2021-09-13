@@ -1,13 +1,9 @@
 #include "boss.h"
 #include "VoxelLoader.h"
-#include "audioPlayer.h"
 #include "game.h"
 #include "player.h"
 #include "level.h"
 #include "VoxelModel.h"
-
-AudioPlayer Boss::shootAudio;
-AudioPlayer Boss::damageAudio;
 
 //possible colors for bullets fired by the boss
 std::vector<glm::vec3> bossBulletColors = {
@@ -111,6 +107,11 @@ Boss::Boss(Game& game, VoxelRenderer& renderer): Character(game,renderer) {
 	deathModels.push_back(&VoxelLoader::getModel("boss_death_5"));
 	deathModels.push_back(&VoxelLoader::getModel("boss_death_6"));
 	deathModels.push_back(&VoxelLoader::getModel("boss_death_7"));
+
+	//load audio
+	shootAudio.load("audio/boss_fire.wav");
+	damageAudio.load("audio/boss_hit.wav");
+	deathAudio.load("audio/boss_death.wav");
 }
 
 void Boss::updateState(float dt) {
@@ -161,22 +162,20 @@ void Boss::move(float dt) {
 
 void Boss::takeDamage() {
 	if (state != ALIVE) return;
+	game.audioEngine.play(damageAudio);
 	hp--;
 	lastDamaged = game.elapsedTime;
 	tintColor = glm::vec3(1.0f, 0.0f, 0.0f);  //give enemy a red tint
 
 	if (hp == 0) {
-		damageAudio.play("audio/boss_death.mp3");
 		state = DYING;
+		game.audioEngine.play(deathAudio);
 		modelUpdateDelay = 0.2f;
 		modelIndex = 0;
 	}
-	else
-		damageAudio.play("audio/boss_hit.mp3");
 }
 
 void Boss::fire() {
-	shootAudio.play("audio/boss_fire.mp3");
 	VoxelModel* model;
 	if (state == ALIVE)
 		model = charModels[modelIndex];
@@ -192,4 +191,5 @@ void Boss::fire() {
 	for (int i = 0; i < bossBulletDirections.size(); i++) {
 		bullets.emplace_back(midPos, bossBulletDirections[i], bossBulletColors[rand() % bossBulletColors.size()], rotate.y, bulletScale, 2);
 	}
+	game.audioEngine.play(shootAudio);
 }

@@ -6,14 +6,8 @@
 #include "resource_manager.h"
 #include "VoxelLoader.h"
 #include "VoxelModel.h"
-#include "audioPlayer.h"
 #include "level.h"
 #include "camera.h"
-
-AudioPlayer Player::shootAudio;
-AudioPlayer Player::dashAudio;
-AudioPlayer Player::movementAudio;
-AudioPlayer Player::damageAudio;
 
 std::vector<glm::vec3> bulletColors = {
 	glm::vec3(1.0f, 0.2f, 0.6f),
@@ -21,7 +15,8 @@ std::vector<glm::vec3> bulletColors = {
 	glm::vec3(1.0f, 1.0f, 0.4f)
 };
 
-void Player::loadModels() {
+void Player::loadModels()
+{
 	VoxelLoader::loadModel("models/player/0.vox", "player_0");
 	VoxelLoader::loadModel("models/player/1.vox", "player_1");
 
@@ -32,13 +27,13 @@ void Player::loadModels() {
 	VoxelLoader::loadModel("models/player/death4.vox", "player_death4");
 }
 
-Player::Player(Game& game, VoxelRenderer& renderer) : Character(game, renderer) {
+Player::Player(Game &game, VoxelRenderer &renderer) : Character(game, renderer)
+{
 	speed = 10.0f;
-    bulletSpeed = 23.0f;
+	bulletSpeed = 23.0f;
 	bulletScale = 0.5f;
 	fireCooldown = 0.6f;
 	modelUpdateDelay = 0.5f;
-	//hp = 500;
 
 	//models must be loaded first!
 	charModels.push_back(&VoxelLoader::getModel("player_0"));
@@ -49,11 +44,21 @@ Player::Player(Game& game, VoxelRenderer& renderer) : Character(game, renderer) 
 	deathModels.push_back(&VoxelLoader::getModel("player_death2"));
 	deathModels.push_back(&VoxelLoader::getModel("player_death3"));
 	deathModels.push_back(&VoxelLoader::getModel("player_death4"));
+
+	//load audio
+	shootAudio.load("audio/gunshot.wav");
+	damageAudio.load("audio/player_damage.wav");
+	dashAudio.load("audio/player_dash.wav");
+	deathAudio.load("audio/player_death.wav");
+	jumpAudio.load("audio/player_jump.wav");
+	landAudio.load("audio/player_land.wav");
 }
 
-void Player::updateState(float dt) {
+void Player::updateState(float dt)
+{
 	//update model
-	if (game.elapsedTime - lastModelUpdate >= modelUpdateDelay) {
+	if (game.elapsedTime - lastModelUpdate >= modelUpdateDelay)
+	{
 		nextModel();
 	}
 
@@ -65,7 +70,8 @@ void Player::updateState(float dt) {
 	game.currentLevel->checkPlayerPickupCollision(*this);
 
 	//update bullet trails
-	for (auto itr = bullets.begin(); itr != bullets.end(); itr++) {
+	for (auto itr = bullets.begin(); itr != bullets.end(); itr++)
+	{
 		itr->trail.update(dt);
 	}
 
@@ -74,29 +80,33 @@ void Player::updateState(float dt) {
 		tintColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	//check if powerup status needs to change
-	if (poweredUp && game.elapsedTime - lastPowerUpTime >= powerUpDuration) {
+	if (poweredUp && game.elapsedTime - lastPowerUpTime >= powerUpDuration)
+	{
 		tintColor = glm::vec3(1.0f, 1.0f, 1.0f);
 		poweredUp = false;
 		fireCooldown *= 2;
 	}
 }
 
-void Player::processInput(float dt) {
+void Player::processInput(float dt)
+{
 	movePlayer(dt);
 	moveVertical(dt);
 	rotatePlayer(dt);
 
 	//mouse1: fire
-	if (game.mouse1 && game.elapsedTime - lastFireTime >= fireCooldown) {
+	if (game.mouse1 && game.elapsedTime - lastFireTime >= fireCooldown)
+	{
 		lastFireTime = game.elapsedTime;
 		fire();
 	}
 
 	//mouse2: dash
-	if (game.mouse2 && game.elapsedTime - lastDashTime >= dashCooldown) {
+	if (game.mouse2 && game.elapsedTime - lastDashTime >= dashCooldown)
+	{
 		lastDashTime = game.elapsedTime;
-		dashAudio.play("audio/player_dash.mp3");
-		
+		game.audioEngine.play(dashAudio);
+
 		//get direction player is facing, and set the dash direction
 		glm::mat4 modelMat = glm::mat4(1.0f);
 		modelMat = glm::rotate(modelMat, glm::radians(rotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -104,54 +114,64 @@ void Player::processInput(float dt) {
 	}
 }
 
-void Player::takeDamage() {
-	if (poweredUp) return;
-	if (game.elapsedTime - lastDamaged <= tintDuration) return;
-	if (state != ALIVE) return;
+void Player::takeDamage()
+{
+	if (poweredUp)
+		return;
+	if (game.elapsedTime - lastDamaged <= tintDuration)
+		return;
+	if (state != ALIVE)
+		return;
 	hp--;
+	game.audioEngine.play(damageAudio);
 	lastDamaged = game.elapsedTime;
 	tintColor = glm::vec3(1.0f, 0.0f, 0.0f);
-	if (hp == 0) {
-		damageAudio.play("audio/player_death.mp3");
+	if (hp == 0)
+	{
+		game.audioEngine.play(deathAudio);
 		state = DYING;
 		modelUpdateDelay = 0.2f;
 		modelIndex = 0;
 	}
-	else
-		damageAudio.play("audio/player_damage.mp3");
 }
 
-//powerup: makes player invincible and increase fire rate
-void Player::powerUp() {
+//powerup: makes player invincible and increases fire rate
+void Player::powerUp()
+{
 	poweredUp = true;
 	tintColor = glm::vec3(1.0f, 0.8f, 0.0f);
 	fireCooldown /= 2;
 	lastPowerUpTime = game.elapsedTime;
 }
 
-void Player::movePlayer(float dt) {
+void Player::movePlayer(float dt)
+{
 	glm::vec3 fb = game.mainCamera->Position - this->pos; //vector from player to camera (forward/back movement)
 	fb = glm::normalize(glm::vec3(fb.x, 0, fb.z));
 
 	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::vec3 lr = glm::normalize(glm::cross(up, fb));  //vector pointing to player's right (left/right movement)
+	glm::vec3 lr = glm::normalize(glm::cross(up, fb)); //vector pointing to player's right (left/right movement)
 	glm::vec3 movement = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	//get movement from keyboard input
-	if (game.Keys[GLFW_KEY_W]) {
+	if (game.Keys[GLFW_KEY_W])
+	{
 		movement -= speed * dt * fb;
 	}
-	if (game.Keys[GLFW_KEY_A]) {
+	if (game.Keys[GLFW_KEY_A])
+	{
 		movement -= speed * dt * lr;
 	}
-	if (game.Keys[GLFW_KEY_S]) {
+	if (game.Keys[GLFW_KEY_S])
+	{
 		movement += speed * dt * fb;
 	}
-	if (game.Keys[GLFW_KEY_D]) {
+	if (game.Keys[GLFW_KEY_D])
+	{
 		movement += speed * dt * lr;
 	}
 
-	//now move the player along x and z axis check for collisions
+	//now move the player along x and z axis and check for collisions
 	glm::vec3 displacement = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	pos.z += movement.z;
@@ -163,60 +183,71 @@ void Player::movePlayer(float dt) {
 	pos.x += displacement.x;
 
 	//if player is dashing, move along dash direction and diminish the dash speed
-	if (dashDirection != glm::vec3(0, 0, 0)) {
+	if (dashDirection != glm::vec3(0, 0, 0))
+	{
 		pos += dashVelocity * dashDirection;
-		dashDirection.x = (dashDirection.x - 2*dt < 0) ? 0 : dashDirection.x - 2*dt;
-		dashDirection.y = (dashDirection.y - 2*dt < 0) ? 0 : dashDirection.y - 2*dt;
-		dashDirection.z = (dashDirection.z - 2*dt < 0) ? 0 : dashDirection.z - 2*dt;
+		dashDirection.x = (dashDirection.x - (2 * dt) < 0) ? 0 : dashDirection.x - (2 * dt);
+		dashDirection.y = (dashDirection.y - (2 * dt) < 0) ? 0 : dashDirection.y - (2 * dt);
+		dashDirection.z = (dashDirection.z - (2 * dt) < 0) ? 0 : dashDirection.z - (2 * dt);
 	}
 
 	//move player along with level if he is grounded
-	if (grounded) {
+	if (grounded)
+	{
 		pos.z -= game.currentLevel->islandSpeed * dt;
 	}
 
-	if (game.currentLevel->outOfBounds(*this)) {  //if player is out of bounds
+	if (game.currentLevel->outOfBounds(*this))
+	{ //if player is out of bounds
 		state = DEAD;
-		game.gameAudio.play("audio/player_death.mp3");
 	}
 }
 
-void Player::moveVertical(float dt) {
-	if (grounded) {
-		if (game.Keys[GLFW_KEY_SPACE]) { //press space to jump
-			movementAudio.play("audio/player_jump.mp3");
+void Player::moveVertical(float dt)
+{
+	if (grounded)
+	{
+		if (game.Keys[GLFW_KEY_SPACE])
+		{ //press space to jump
+		    game.audioEngine.play(jumpAudio);
 			grounded = false;
 			verticalVelocity = 1.0f;
 		}
 	}
 
-	if (grounded) {  //move player down and get displacement to test if there is ground below him
-		pos.y += speed * dt * verticalVelocity; 
+	if (grounded)
+	{ //move player down and get displacement to test if there is ground below him
+		pos.y += speed * dt * verticalVelocity;
 		glm::vec3 displacement = game.currentLevel->checkPlayerLevelCollision(*this);
 		pos.y += displacement.y;
-		if (displacement.y <= 0) grounded = false; //if there is no ground below him, set grounded to false
+		if (displacement.y <= 0)
+			grounded = false; //if there is no ground below him, set grounded to false
 	}
 
-	if (!grounded) {
+	if (!grounded)
+	{
 		pos.y += speed * dt * verticalVelocity; //move player vertically and then test for a collision
 		verticalVelocity -= dt;
 		glm::vec3 displacement = game.currentLevel->checkPlayerLevelCollision(*this);
 		pos.y += displacement.y;
 
-		if (displacement.y > 0) {  //if the displacement from collision resolution is positive, then the player has hit the ground
-			movementAudio.play("audio/player_land.mp3");
+		if (displacement.y > 0)
+		{ //if the displacement from collision resolution is positive, then the player has hit the ground
+		    game.audioEngine.play(landAudio);
 			grounded = true;
 			verticalVelocity = -0.1f;
 		}
-		if (displacement.y < 0) verticalVelocity = 0.0f;  //if displacement is negative, player has hit a ceiling, so set verticalVelocity=0
+		if (displacement.y < 0)
+			verticalVelocity = 0.0f; //if displacement is negative, player has hit a ceiling, so set verticalVelocity=0
 	}
 }
 
-void Player::rotatePlayer(float dt) {  //rotate player based on mouse position
+void Player::rotatePlayer(float dt)
+{ //rotate player based on mouse position
 	glm::mat4 modelMat = glm::mat4(1.0f);
 	glm::mat4 projection = game.mainCamera->GetProjectionMatrix();
 	glm::mat4 view = game.mainCamera->GetViewMatrix();
-	VoxelModel& model = *charModels[modelIndex];
+	VoxelModel &model = *charModels[modelIndex];
 
 	//obtain midPos, the point at the middle of the player model
 	modelMat = glm::translate(modelMat, pos);
@@ -236,7 +267,8 @@ void Player::rotatePlayer(float dt) {  //rotate player based on mouse position
 
 	//use cross product to check if angle should be negated
 	glm::vec3 cross = glm::normalize(glm::cross(playerToCursor, glm::vec3(-1.0f, 0.0f, 0.0f)));
-	if (glm::abs(cross.y - 1.0f) <= .01f) {
+	if (glm::abs(cross.y - 1.0f) <= .01f)
+	{
 		angle = -angle;
 	}
 
@@ -244,9 +276,9 @@ void Player::rotatePlayer(float dt) {  //rotate player based on mouse position
 	rotate.y = glm::degrees(angle);
 }
 
-void Player::fire() {
-	shootAudio.play("audio/gunshot.mp3");
-	VoxelModel* model;
+void Player::fire()
+{
+	VoxelModel *model;
 	if (state == ALIVE)
 		model = charModels[modelIndex];
 	else
@@ -259,8 +291,9 @@ void Player::fire() {
 	modelMat = glm::mat4(1.0f);
 	modelMat = glm::translate(modelMat, pos);
 	glm::vec3 midPos = glm::vec3(0.5f * scale * model->getSize().x, 0.5f * scale * model->getSize().y, 0.5f * scale * model->getSize().z);
-	midPos = modelMat * glm::vec4(midPos, 1.0f);  //middle point of the player model
+	midPos = modelMat * glm::vec4(midPos, 1.0f); //middle point of the player model
 
 	glm::vec3 bulletColor = bulletColors[rand() % bulletColors.size()];
 	bullets.emplace_back(midPos, direction, bulletColor, rotate.y, bulletScale, 10);
+	game.audioEngine.play(shootAudio);
 }

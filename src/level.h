@@ -3,6 +3,8 @@
 #include <list>
 #include <glm/glm.hpp>
 #include "gameObject.h"
+#include "soloud.h"
+#include "soloud_wav.h"
 
 //FORWARD DECLARATIONS
 class VoxelRenderer;
@@ -27,6 +29,10 @@ private:
 	Pickup*                  healthPickup = nullptr;
 	Pickup*                  powerup      = nullptr;
 	Boss*                    boss         = nullptr;
+
+	//audio
+	SoLoud::Wav hpGainAudio;
+	SoLoud::Wav powerupAudio;
 
 	const float levelSize = 100.0f;        //1/2 of side length of the cube that makes up the play area
 	float enemySpawnDelay = 5.5f;          //time between enemy spawns

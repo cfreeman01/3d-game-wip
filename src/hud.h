@@ -8,11 +8,11 @@ private:
 	Game& game;
 	SpriteRenderer& renderer;
 
-	const glm::vec2 hp_size = glm::vec2(52.0f, 28.0f);
-	const glm::vec2 dash_size = glm::vec2(52.0f, 28.0f);
+	glm::vec2 hp_size;
+	glm::vec2 dash_size;
 	glm::vec2 hp_pos, dash_pos;
-	const float scale = 2.0f;
-	const float padding = 30.0f;
+	float scale = 2.0f;
+	float padding;
 
 public:
 	HUD(Game& game, SpriteRenderer& renderer);

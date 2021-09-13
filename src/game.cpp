@@ -14,7 +14,6 @@
 #include "level.h"
 #include "character.h"
 #include "player.h"
-#include "audioPlayer.h"
 #include "camera.h"
 #include "enemy.h"
 #include "enemy1.h"
@@ -25,22 +24,19 @@
 
 using namespace std;
 
-AudioPlayer Game::gameAudio;
-
 bool displayFrames = true;
 float lastDisplayTime = 0.0f;
 
 Game::Game(unsigned int width, unsigned int height)
     : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
 {
-    mouseX = (float)this->Width  / 2;
+    mouseX = (float)this->Width / 2;
     mouseY = (float)this->Height / 2;
     mouse1 = mouse2 = false;
 }
 
 Game::~Game()
 {
-
 }
 
 void Game::Init()
@@ -52,35 +48,55 @@ void Game::Init()
     Enemy3::loadModels();
     Boss::loadModels();
     Level::loadModels();
+
     //load textures
     ResourceManager::LoadTexture("textures/cursor.png", true, "cursor");
     ResourceManager::LoadTexture("textures/gameOver.png", true, "GameOver");
     ResourceManager::LoadTexture("textures/controls.png", true, "controls");
     HUD::loadTextures();
+
+    //load audio
+    audioEngine.init();
+    restartAudio.load("audio/restart.wav");
+    gameOverAudio.load("audio/game_over.wav");
+    swoosh1.load("audio/swoosh_1.wav");
+    swoosh2.load("audio/swoosh_2.wav");
+    Enemy::loadAudio();
+    Enemy1::loadAudio();
+    Enemy2::loadAudio();
+    Enemy3::loadAudio();
+
     //load shaders
-    Shader& voxShader = ResourceManager::LoadShader("shaders/Voxel.vert", "shaders/Voxel.frag", nullptr, "VoxelShader");
-    Shader& spriteShader = ResourceManager::LoadShader("shaders/Sprite.vert", "shaders/Sprite.frag", nullptr, "SpriteShader");
+    Shader &voxShader = ResourceManager::LoadShader("shaders/Voxel.vert", "shaders/Voxel.frag", nullptr, "VoxelShader");
+    Shader &spriteShader = ResourceManager::LoadShader("shaders/Sprite.vert", "shaders/Sprite.frag", nullptr, "SpriteShader");
     ResourceManager::LoadShader("shaders/Trail.vert", "shaders/Trail.frag", nullptr, "TrailShader");
+
     //create voxel renderer
     vRenderer = new VoxelRenderer(voxShader, *this);
+
     //create sprite renderer
     sRenderer = new SpriteRenderer(spriteShader, *this);
+
     //create camera
     mainCamera = new Camera(1.5f * glm::vec3(-38.3f, 21.8f, -21.7f), glm::vec3(0.0f, 1.0f, 0.0f), 29.0f, -28.6f);
     voxShader.SetMatrix4("projection", mainCamera->GetProjectionMatrix());
+
     //load level
     currentLevel = new Level(*vRenderer, *this);
+
     //load player object
     player = new Player(*this, *vRenderer);
     player->pos = glm::vec3(-8.0f, -1.0f, -1.5f);
     player->scale = 0.1;
+
     //initialize HUD
     hud = new HUD(*this, *sRenderer);
 }
 
 void Game::Update(float dt)
 {
-    if (State == GAME_OVER) return;
+    if (State == GAME_OVER)
+        return;
 
     elapsedTime += dt;
 
@@ -90,13 +106,15 @@ void Game::Update(float dt)
 
     currentLevel->updateState(dt);
 
-    if (player->getState() == Character::DEAD) {
+    if (player->getState() == Character::DEAD)
+    {
+        audioEngine.play(gameOverAudio);
         State = GAME_OVER;
-        gameAudio.play("audio/game_over.mp3");
         return;
     }
 
-    if (displayFrames && elapsedTime - lastDisplayTime > 1.0f) {
+    if (displayFrames && elapsedTime - lastDisplayTime > 1.0f)
+    {
         lastDisplayTime = elapsedTime;
         std::cout << 1 / dt << "FPS\n";
     }
@@ -104,22 +122,19 @@ void Game::Update(float dt)
 
 void Game::ProcessInput(float dt)
 {
-    if (State == GAME_OVER) {
-        if (mouse1) {  //on game over, player presses mouse1 to restart game
+    if (State == GAME_OVER)
+    {
+        if (mouse1)
+        { //on game over, player presses mouse1 to restart game
             restart();
             State = GAME_ACTIVE;
-            gameAudio.play("audio/restart.mp3");
         }
         return;
     }
 
-    /*if (Keys[GLFW_KEY_1] && elapsedTime - lastCameraModeSwitch >= 0.5f) {
-        mainCamera->freeMode = !mainCamera->freeMode;
-        lastCameraModeSwitch = elapsedTime;
-    }*/
-
     //Process camera input
-    if (mainCamera->freeMode) {
+    if (mainCamera->freeMode)
+    {
         //process keyboard input
         if (Keys[GLFW_KEY_W])
             mainCamera->ProcessKeyboard(FORWARD, dt);
@@ -133,26 +148,30 @@ void Game::ProcessInput(float dt)
         mainCamera->ProcessMouseMovement(mouseX, mouseY);
     }
 
-    else {
+    else
+    {
         //rotate camera
-        if (Keys[GLFW_KEY_Q] && mainCamera->rotating == 0) {
+        if (Keys[GLFW_KEY_Q] && mainCamera->rotating == 0)
+        {
             mainCamera->rotating = -1;
-            gameAudio.play("audio/swoosh_1.mp3");
+            audioEngine.play(swoosh1);
         }
-        if (Keys[GLFW_KEY_E] && mainCamera->rotating == 0) {
+        if (Keys[GLFW_KEY_E] && mainCamera->rotating == 0)
+        {
             mainCamera->rotating = 1;
-            gameAudio.play("audio/swoosh_2.mp3");
+            audioEngine.play(swoosh2);
         }
         //zoom camera
         mainCamera->ProcessMouseScroll(mouseWheelOffset);
         mouseWheelOffset = 0.0f;
 
         //Process player input
-        if(player->getState() == Character::ALIVE)
+        if (player->getState() == Character::ALIVE)
             player->processInput(dt);
     }
 
-    if (Keys[GLFW_KEY_ESCAPE]) {
+    if (Keys[GLFW_KEY_ESCAPE])
+    {
         exit(0);
     }
 }
@@ -169,21 +188,26 @@ void Game::Render(float dt)
     hud->draw();
 
     //display game controls for first ten seconds
-    if (elapsedTime <= 10.0f) {
-        float controlsSize = 200.0f;
+    if (elapsedTime <= 10.0f)
+    {
+        float controlsSize = Width/4.0f;
         sRenderer->DrawSprite(ResourceManager::GetTexture("controls"), glm::vec2(Width - controlsSize, 0),
-            glm::vec2(controlsSize, controlsSize));
+                              glm::vec2(controlsSize, controlsSize));
     }
 
     //draw a game over message
-    if (State == GAME_OVER) {
-        float gameOverSize = 400.0f;
+    if (State == GAME_OVER)
+    {
+        float gameOverSize = Width/2.25f;
         sRenderer->DrawSprite(ResourceManager::GetTexture("GameOver"), glm::vec2(Width / 2 - gameOverSize / 2, Height / 2 - gameOverSize / 2),
-            glm::vec2(gameOverSize, gameOverSize));
+                              glm::vec2(gameOverSize, gameOverSize));
     }
 }
 
-void Game::restart() {
+void Game::restart()
+{
+    audioEngine.stopAll();
+    audioEngine.play(restartAudio);
     //reset level
     delete currentLevel;
     currentLevel = new Level(*vRenderer, *this);

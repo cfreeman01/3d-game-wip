@@ -1,13 +1,14 @@
 #include "enemy.h"
-
-//FORWARD DECLARATIONS
-class AudioPlayer;
+#include "soloud.h"
+#include "soloud_wav.h"
 
 class Enemy3 : public Enemy {
 private:
 	void fire();
 	void move(float dt);
-	static AudioPlayer shootAudio;
+
+	//audio
+	static SoLoud::Wav shootAudio;
 
 	/*properites used to manage unique firing pattern*/
 	glm::vec3 bulletDir = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -18,5 +19,6 @@ private:
 public:
 	Enemy3(Game& game, VoxelRenderer& renderer);
 	static void loadModels();
+	static void loadAudio();
 	void updateState(float dt);
 };

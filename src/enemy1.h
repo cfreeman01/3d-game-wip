@@ -1,15 +1,19 @@
 #include "enemy.h"
+#include "soloud.h"
+#include "soloud_wav.h"
 
-//FORWARD DECLARATIONS
-class AudioPlayer;
-
-class Enemy1 : public Enemy {
+class Enemy1 : public Enemy
+{
 private:
 	void fire();
 	void move(float dt);
-	static AudioPlayer shootAudio;
+
+	//audio
+	static SoLoud::Wav shootAudio;
 
 public:
-	Enemy1(Game& game, VoxelRenderer& renderer);
+	Enemy1(Game &game, VoxelRenderer &renderer);
+
 	static void loadModels();
+	static void loadAudio();
 };

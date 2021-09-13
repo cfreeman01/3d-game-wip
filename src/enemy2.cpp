@@ -4,9 +4,8 @@
 #include "level.h"
 #include "VoxelLoader.h"
 #include "VoxelModel.h"
-#include "audioPlayer.h"
 
-AudioPlayer Enemy2::shootAudio;
+SoLoud::Wav Enemy2::shootAudio;
 
 void Enemy2::loadModels() {
 	VoxelLoader::loadModel("models/enemy2/0.vox", "enemy2_0");
@@ -19,6 +18,10 @@ void Enemy2::loadModels() {
 	VoxelLoader::loadModel("models/enemy2/death1.vox", "enemy2_death1");
 	VoxelLoader::loadModel("models/enemy2/death2.vox", "enemy2_death2");
 	VoxelLoader::loadModel("models/enemy2/death3.vox", "enemy2_death3");
+}
+
+void Enemy2::loadAudio(){
+	shootAudio.load("audio/enemy2_gunshot.wav");
 }
 
 Enemy2::Enemy2(Game& game, VoxelRenderer& renderer) : Enemy(game, renderer) {
@@ -69,7 +72,6 @@ void Enemy2::move(float dt) {
 }
 
 void Enemy2::fire() {
-	shootAudio.play("audio/enemy2_gunshot.mp3");
 	VoxelModel* model;
 	if (state == ALIVE)
 		model = charModels[modelIndex];
@@ -101,4 +103,6 @@ void Enemy2::fire() {
 	modelMat = glm::translate(modelMat, midPos);
 	newDir = glm::normalize(modelMat * glm::vec4(diff, 1.0f));
 	bullets.emplace_back(midPos, newDir, glm::vec3(0.2f, 0.8f, 0.6f), rotate.y, bulletScale, 3);
+
+	game.audioEngine.play(shootAudio);
 }

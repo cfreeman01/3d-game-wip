@@ -26,7 +26,7 @@ void SpriteRenderer::DrawSprite(Texture2D& texture, glm::vec2 position, glm::vec
 
     model = glm::scale(model, glm::vec3(size, 1.0f)); // last scale
 
-    projection = glm::ortho(0.0f, 900.0f, 900.0f, 0.0f, -1.0f, 1.0f);
+    projection = glm::ortho(0.0f, (float)game.Width, (float)game.Height, 0.0f, -1.0f, 1.0f);
 
     this->shader.SetMatrix4("model", model);
     this->shader.SetMatrix4("projection", projection);

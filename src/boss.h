@@ -1,7 +1,6 @@
 #include "character.h"
-
-//FORWARD DECLARATIONS
-class AudioPlayer;
+#include "soloud.h"
+#include "soloud_wav.h"
 
 class Boss : public Character {
 private:
@@ -11,10 +10,12 @@ private:
 	//movement
 	glm::vec3 velocity;
 	void move(float dt);
-
+	
 	//audio
-	static AudioPlayer shootAudio;
-	static AudioPlayer damageAudio;
+	SoLoud::Wav shootAudio;
+	SoLoud::Wav damageAudio;
+	SoLoud::Wav deathAudio;
+
 public:
 	Boss(Game& game, VoxelRenderer& renderer);
 	static void loadModels();

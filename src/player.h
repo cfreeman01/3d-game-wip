@@ -1,11 +1,12 @@
 #pragma once
 #include "character.h"
+#include "soloud.h"
+#include "soloud_wav.h"
 
 //FORWARD DECLARATIONS 
 class Game;
 class VoxelModel;
 class VoxelRenderer;
-class AudioPlayer;
 
 /*object representing the player character*/
 class Player: public Character {
@@ -30,17 +31,19 @@ private:
 	float verticalVelocity   = -0.1f;
 	const float dashCooldown = 5.0f;
 	float lastDashTime       = 0.0f;
-	float dashVelocity       = 0.1f;
+	float dashVelocity       = 1.0f;
 	glm::vec3 dashDirection  = glm::vec3(0.0f);
+
+	//audio
+	SoLoud::Wav shootAudio;
+	SoLoud::Wav damageAudio;
+	SoLoud::Wav dashAudio;
+	SoLoud::Wav deathAudio;
+	SoLoud::Wav jumpAudio;
+	SoLoud::Wav landAudio;
 
 	//powerup
 	bool poweredUp = false;
 	float powerUpDuration = 10.0f;
 	float lastPowerUpTime = 0.0f;
-
-	//audio
-	static AudioPlayer shootAudio;
-	static AudioPlayer dashAudio;
-	static AudioPlayer movementAudio;
-	static AudioPlayer damageAudio;
 };
