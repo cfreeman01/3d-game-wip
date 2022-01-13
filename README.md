@@ -5,11 +5,11 @@ A simple 3D shooter game with voxel-style graphics, made with C++ and OpenGL.
 ![gameplay video 1](gameplay1.gif)
 ![gameplay video 2](gameplay2.gif)
   ## Features
-  - :rocket: Move, jump, and dash to navigate the sky road and dodge enemies
-  - :skull_and_crossbones: Several unique enemy types
-  - :smiling_imp: Epic boss fights
-  -  :game_die: Colorful voxel graphics
-  -  :dart: Endless gameplay with steadily increasing difficulty
+  - System to read  voxel information from files, then position and render the voxels in the 3D world
+  - Various enemies with different behaviors and attack patterns
+  - Simple shading and particle effects created with OpenGL shaders
+  - Powerups, health pickups, and a dash ability
+  - Full audio
   ## Building and Running
   - Use CMake to generate build files, all dependencies are included
     - Unix-like systems may require additional packages for GLFW as described [here](https://www.glfw.org/docs/latest/compile_guide.html#compile_deps_x11)
